@@ -49,6 +49,7 @@ export default function EntityDoctorsPage() {
       licenseNumber: newDoctor.licenseNumber,
       specialty: newDoctor.specialty,
       hospital: newDoctor.hospital || "Apollo Hospitals",
+      hospitalId: "",
       status: "active",
       totalAppointments: 0,
       rating: 5.0,
