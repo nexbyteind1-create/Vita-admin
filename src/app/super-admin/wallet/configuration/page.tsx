@@ -45,7 +45,7 @@ export default function WalletConfigurationPage() {
             ].map(field => (
               <div key={field.key}>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">{field.label}</label>
-                <input type={field.type} step={field.step} value={(config as Record<string, unknown>)[field.key] as number} onChange={e => setConfig(c => ({ ...c, [field.key]: Number(e.target.value) }))} className="vita-input" />
+                <input type={field.type} step={field.step} value={(config as any)[field.key] as number} onChange={e => setConfig(c => ({ ...c, [field.key]: Number(e.target.value) }))} className="vita-input" />
               </div>
             ))}
             <div>
