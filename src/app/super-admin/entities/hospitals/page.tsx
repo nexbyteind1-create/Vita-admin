@@ -30,10 +30,41 @@ const columns: Column<Hospital>[] = [
 
 export default function EntityHospitalsPage() {
   const [query, setQuery] = useState("");
+  const [hospitalList, setHospitalList] = useState<Hospital[]>(hospitals);
   const [selected, setSelected] = useState<Hospital | null>(null);
   const [actionModal, setActionModal] = useState<{ action: string; entity: Hospital } | null>(null);
+  const [createModal, setCreateModal] = useState(false);
+  const [newHospital, setNewHospital] = useState({
+    name: "",
+    registrationId: "",
+    city: "",
+    state: "",
+  });
 
-  const filtered = hospitals.filter(h =>
+  const handleCreateHospital = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newHospital.name || !newHospital.registrationId) return;
+
+    const newHosp: Hospital = {
+      id: `h-${Date.now()}`,
+      name: newHospital.name,
+      registrationId: newHospital.registrationId,
+      city: newHospital.city || "Hyderabad",
+      state: newHospital.state || "Telangana",
+      status: "active",
+      totalDoctors: 0,
+      totalPatients: 0,
+      totalAppointments: 0,
+      approvalStatus: "approved",
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    setHospitalList(prev => [newHosp, ...prev]);
+    setCreateModal(false);
+    setNewHospital({ name: "", registrationId: "", city: "", state: "" });
+  };
+
+  const filtered = hospitalList.filter(h =>
     h.name.toLowerCase().includes(query.toLowerCase()) ||
     h.registrationId.toLowerCase().includes(query.toLowerCase()) ||
     h.city.toLowerCase().includes(query.toLowerCase())
@@ -41,13 +72,23 @@ export default function EntityHospitalsPage() {
 
   return (
     <div className="min-h-screen">
-      <TopHeader title="Hospital Management" subtitle="Approve, suspend, block and manage all hospital entities" role="super-admin" actions={<ExportMenu reportName="Hospitals Report" />} />
+      <TopHeader
+        title="Hospital Management"
+        subtitle="Approve, suspend, block and manage all hospital entities"
+        role="super-admin"
+        actions={
+          <div className="flex items-center gap-2">
+            <ExportMenu reportName="Hospitals Report" />
+            <Button onClick={() => setCreateModal(true)}>Add Hospital</Button>
+          </div>
+        }
+      />
       <div className="p-6 space-y-6 max-w-[1600px]">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="Total Hospitals" value={hospitals.length} icon={<Building2 className="w-full h-full" />} color="blue" />
-          <StatCard label="Active" value={hospitals.filter(h => h.status === "active").length} icon={<CheckCircle className="w-full h-full" />} color="emerald" />
-          <StatCard label="Pending Approval" value={hospitals.filter(h => h.approvalStatus === "pending").length} icon={<Pause className="w-full h-full" />} color="amber" />
-          <StatCard label="Suspended" value={hospitals.filter(h => h.status === "suspended").length} icon={<XCircle className="w-full h-full" />} color="red" />
+          <StatCard label="Total Hospitals" value={hospitalList.length} icon={<Building2 className="w-full h-full" />} color="blue" />
+          <StatCard label="Active" value={hospitalList.filter(h => h.status === "active").length} icon={<CheckCircle className="w-full h-full" />} color="emerald" />
+          <StatCard label="Pending Approval" value={hospitalList.filter(h => h.approvalStatus === "pending").length} icon={<Pause className="w-full h-full" />} color="amber" />
+          <StatCard label="Suspended" value={hospitalList.filter(h => h.status === "suspended").length} icon={<XCircle className="w-full h-full" />} color="red" />
         </div>
 
         <SearchInput placeholder="Search by name, registration ID, or city..." onSearch={setQuery} className="max-w-lg" />
@@ -104,6 +145,34 @@ export default function EntityHospitalsPage() {
             </Button>
             <Button variant="secondary" onClick={() => setActionModal(null)}>Cancel</Button>
           </div>
+        </Modal>
+
+        {/* Add Hospital Modal */}
+        <Modal open={createModal} onClose={() => setCreateModal(false)} title="Add New Hospital" subtitle="Register a new hospital partner on the network" size="md">
+          <form onSubmit={handleCreateHospital} className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Hospital Name</label>
+              <input value={newHospital.name} onChange={e => setNewHospital(h => ({ ...h, name: e.target.value }))} className="vita-input" placeholder="Apollo Hospitals" required />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Registration / License ID</label>
+              <input value={newHospital.registrationId} onChange={e => setNewHospital(h => ({ ...h, registrationId: e.target.value }))} className="vita-input" placeholder="REG-AP-2026-092" required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">City</label>
+                <input value={newHospital.city} onChange={e => setNewHospital(h => ({ ...h, city: e.target.value }))} className="vita-input" placeholder="Hyderabad" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">State</label>
+                <input value={newHospital.state} onChange={e => setNewHospital(h => ({ ...h, state: e.target.value }))} className="vita-input" placeholder="Telangana" />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-4 border-t border-[#1f2d45]">
+              <Button type="submit" className="flex-1">Register Hospital</Button>
+              <Button type="button" variant="secondary" onClick={() => setCreateModal(false)}>Cancel</Button>
+            </div>
+          </form>
         </Modal>
       </div>
     </div>

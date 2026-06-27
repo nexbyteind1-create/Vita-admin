@@ -28,10 +28,40 @@ const columns: Column<Doctor>[] = [
 
 export default function EntityDoctorsPage() {
   const [query, setQuery] = useState("");
+  const [doctorList, setDoctorList] = useState<Doctor[]>(doctors);
   const [selected, setSelected] = useState<Doctor | null>(null);
   const [actionModal, setActionModal] = useState<{ action: string; entity: Doctor } | null>(null);
+  const [createModal, setCreateModal] = useState(false);
+  const [newDoctor, setNewDoctor] = useState({
+    name: "",
+    licenseNumber: "",
+    specialty: "",
+    hospital: "",
+  });
 
-  const filtered = doctors.filter(d =>
+  const handleCreateDoctor = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDoctor.name || !newDoctor.licenseNumber || !newDoctor.specialty) return;
+
+    const newDoc: Doctor = {
+      id: `d-${Date.now()}`,
+      name: newDoctor.name,
+      licenseNumber: newDoctor.licenseNumber,
+      specialty: newDoctor.specialty,
+      hospital: newDoctor.hospital || "Apollo Hospitals",
+      status: "active",
+      totalAppointments: 0,
+      rating: 5.0,
+      verificationStatus: "verified",
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    setDoctorList(prev => [newDoc, ...prev]);
+    setCreateModal(false);
+    setNewDoctor({ name: "", licenseNumber: "", specialty: "", hospital: "" });
+  };
+
+  const filtered = doctorList.filter(d =>
     d.name.toLowerCase().includes(query.toLowerCase()) ||
     d.licenseNumber.toLowerCase().includes(query.toLowerCase()) ||
     d.specialty.toLowerCase().includes(query.toLowerCase())
@@ -39,13 +69,23 @@ export default function EntityDoctorsPage() {
 
   return (
     <div className="min-h-screen">
-      <TopHeader title="Doctor Management" subtitle="Verify, suspend, and manage all doctors" role="super-admin" actions={<ExportMenu reportName="Doctors Report" />} />
+      <TopHeader
+        title="Doctor Management"
+        subtitle="Verify, suspend, and manage all doctors"
+        role="super-admin"
+        actions={
+          <div className="flex items-center gap-2">
+            <ExportMenu reportName="Doctors Report" />
+            <Button onClick={() => setCreateModal(true)}>Add Doctor</Button>
+          </div>
+        }
+      />
       <div className="p-6 space-y-6 max-w-[1600px]">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="Total Doctors" value={doctors.length} icon={<Stethoscope className="w-full h-full" />} color="blue" />
-          <StatCard label="Verified" value={doctors.filter(d => d.verificationStatus === "verified").length} icon={<CheckCircle className="w-full h-full" />} color="emerald" />
-          <StatCard label="Pending Verification" value={doctors.filter(d => d.verificationStatus === "pending").length} icon={<Eye className="w-full h-full" />} color="amber" />
-          <StatCard label="Suspended" value={doctors.filter(d => d.status === "suspended").length} icon={<XCircle className="w-full h-full" />} color="red" />
+          <StatCard label="Total Doctors" value={doctorList.length} icon={<Stethoscope className="w-full h-full" />} color="blue" />
+          <StatCard label="Verified" value={doctorList.filter(d => d.verificationStatus === "verified").length} icon={<CheckCircle className="w-full h-full" />} color="emerald" />
+          <StatCard label="Pending Verification" value={doctorList.filter(d => d.verificationStatus === "pending").length} icon={<Eye className="w-full h-full" />} color="amber" />
+          <StatCard label="Suspended" value={doctorList.filter(d => d.status === "suspended").length} icon={<XCircle className="w-full h-full" />} color="red" />
         </div>
         <SearchInput placeholder="Search by name, license, or specialty..." onSearch={setQuery} className="max-w-lg" />
         <DataTable
@@ -75,6 +115,34 @@ export default function EntityDoctorsPage() {
             <Button variant={actionModal?.action === "suspend" ? "danger" : "success"} className="flex-1" onClick={() => setActionModal(null)}>Confirm</Button>
             <Button variant="secondary" onClick={() => setActionModal(null)}>Cancel</Button>
           </div>
+        </Modal>
+
+        {/* Add Doctor Modal */}
+        <Modal open={createModal} onClose={() => setCreateModal(false)} title="Add New Doctor" subtitle="Register a new doctor on the system" size="md">
+          <form onSubmit={handleCreateDoctor} className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Doctor Name</label>
+              <input value={newDoctor.name} onChange={e => setNewDoctor(d => ({ ...d, name: e.target.value }))} className="vita-input" placeholder="Dr. Arun Mehta" required />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">License Number</label>
+              <input value={newDoctor.licenseNumber} onChange={e => setNewDoctor(d => ({ ...d, licenseNumber: e.target.value }))} className="vita-input" placeholder="LIC-TG-2026-9481" required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Specialty</label>
+                <input value={newDoctor.specialty} onChange={e => setNewDoctor(d => ({ ...d, specialty: e.target.value }))} className="vita-input" placeholder="Cardiology" required />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Hospital Partner</label>
+                <input value={newDoctor.hospital} onChange={e => setNewDoctor(d => ({ ...d, hospital: e.target.value }))} className="vita-input" placeholder="Apollo Hospitals" />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-4 border-t border-[#1f2d45]">
+              <Button type="submit" className="flex-1">Add Doctor</Button>
+              <Button type="button" variant="secondary" onClick={() => setCreateModal(false)}>Cancel</Button>
+            </div>
+          </form>
         </Modal>
       </div>
     </div>

@@ -38,10 +38,49 @@ const columns: Column<User>[] = [
 
 export default function EntityUsersPage() {
   const [query, setQuery] = useState("");
+  const [userList, setUserList] = useState<User[]>(users);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [actionModal, setActionModal] = useState<{ action: string; user: User } | null>(null);
+  const [createModal, setCreateModal] = useState(false);
+  const [newUserData, setNewUserData] = useState({
+    name: "",
+    mobile: "",
+    email: "",
+    age: 30,
+    gender: "male",
+    city: "",
+    state: "",
+    membershipTier: "",
+  });
 
-  const filtered = users.filter(u =>
+  const handleCreateUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUserData.name || !newUserData.mobile || !newUserData.email) return;
+
+    const newUser: User = {
+      id: `u-${Date.now()}`,
+      name: newUserData.name,
+      uhid: `VITA${Math.floor(100000 + Math.random() * 900000)}`,
+      mobile: newUserData.mobile,
+      email: newUserData.email,
+      age: Number(newUserData.age),
+      gender: newUserData.gender as "male" | "female",
+      city: newUserData.city || "Hyderabad",
+      state: newUserData.state || "Telangana",
+      status: "active",
+      membershipTier: newUserData.membershipTier || undefined,
+      totalSpend: 0,
+      totalAppointments: 0,
+      walletBalance: 0,
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    setUserList(prev => [newUser, ...prev]);
+    setCreateModal(false);
+    setNewUserData({ name: "", mobile: "", email: "", age: 30, gender: "male", city: "", state: "", membershipTier: "" });
+  };
+
+  const filtered = userList.filter(u =>
     u.name.toLowerCase().includes(query.toLowerCase()) ||
     u.uhid.toLowerCase().includes(query.toLowerCase()) ||
     u.mobile.includes(query) ||
@@ -50,16 +89,24 @@ export default function EntityUsersPage() {
 
   return (
     <div className="min-h-screen">
-      <TopHeader title="User Management" subtitle="View, manage and moderate all platform users" role="super-admin"
-        actions={<ExportMenu reportName="Users Report" />}
+      <TopHeader
+        title="User Management"
+        subtitle="View, manage and moderate all platform users"
+        role="super-admin"
+        actions={
+          <div className="flex items-center gap-2">
+            <ExportMenu reportName="Users Report" />
+            <Button onClick={() => setCreateModal(true)}>Add User</Button>
+          </div>
+        }
       />
       <div className="p-6 space-y-6 max-w-[1600px]">
         {/* Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="Total Users" value={users.length} icon={<Users className="w-full h-full" />} color="blue" />
-          <StatCard label="Active" value={users.filter(u => u.status === "active").length} icon={<Activity className="w-full h-full" />} color="emerald" />
-          <StatCard label="Suspended" value={users.filter(u => u.status === "suspended").length} icon={<UserX className="w-full h-full" />} color="amber" />
-          <StatCard label="Blocked" value={users.filter(u => u.status === "blocked").length} icon={<ShieldOff className="w-full h-full" />} color="red" />
+          <StatCard label="Total Users" value={userList.length} icon={<Users className="w-full h-full" />} color="blue" />
+          <StatCard label="Active" value={userList.filter(u => u.status === "active").length} icon={<Activity className="w-full h-full" />} color="emerald" />
+          <StatCard label="Suspended" value={userList.filter(u => u.status === "suspended").length} icon={<UserX className="w-full h-full" />} color="amber" />
+          <StatCard label="Blocked" value={userList.filter(u => u.status === "blocked").length} icon={<ShieldOff className="w-full h-full" />} color="red" />
         </div>
 
         {/* Search + Filters */}
@@ -139,6 +186,62 @@ export default function EntityUsersPage() {
             </Button>
             <Button variant="secondary" onClick={() => setActionModal(null)}>Cancel</Button>
           </div>
+        </Modal>
+
+        {/* Add User Modal */}
+        <Modal open={createModal} onClose={() => setCreateModal(false)} title="Add New User" subtitle="Register a new patient/user on the platform" size="md">
+          <form onSubmit={handleCreateUser} className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Full Name</label>
+              <input value={newUserData.name} onChange={e => setNewUserData(u => ({ ...u, name: e.target.value }))} className="vita-input" placeholder="Lokesh Kumar" required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Mobile Number</label>
+                <input value={newUserData.mobile} onChange={e => setNewUserData(u => ({ ...u, mobile: e.target.value }))} className="vita-input" placeholder="9876543210" required />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Email Address</label>
+                <input type="email" value={newUserData.email} onChange={e => setNewUserData(u => ({ ...u, email: e.target.value }))} className="vita-input" placeholder="lokesh@email.com" required />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Age</label>
+                <input type="number" value={newUserData.age} onChange={e => setNewUserData(u => ({ ...u, age: Number(e.target.value) }))} className="vita-input" placeholder="30" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Gender</label>
+                <select value={newUserData.gender} onChange={e => setNewUserData(u => ({ ...u, gender: e.target.value }))} className="vita-input">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">City</label>
+                <input value={newUserData.city} onChange={e => setNewUserData(u => ({ ...u, city: e.target.value }))} className="vita-input" placeholder="Hyderabad" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">State</label>
+                <input value={newUserData.state} onChange={e => setNewUserData(u => ({ ...u, state: e.target.value }))} className="vita-input" placeholder="Telangana" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Membership Tier</label>
+              <select value={newUserData.membershipTier} onChange={e => setNewUserData(u => ({ ...u, membershipTier: e.target.value }))} className="vita-input">
+                <option value="">None</option>
+                <option value="Silver">Silver</option>
+                <option value="Gold">Gold</option>
+                <option value="Platinum">Platinum</option>
+              </select>
+            </div>
+            <div className="flex gap-2 pt-4 border-t border-[#1f2d45]">
+              <Button type="submit" className="flex-1">Create Account</Button>
+              <Button type="button" variant="secondary" onClick={() => setCreateModal(false)}>Cancel</Button>
+            </div>
+          </form>
         </Modal>
       </div>
     </div>
