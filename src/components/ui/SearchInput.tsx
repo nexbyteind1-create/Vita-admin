@@ -1,6 +1,6 @@
 "use client";
 import { Search, X } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils/cn";
 
 interface SearchInputProps {
@@ -13,19 +13,15 @@ interface SearchInputProps {
 
 export function SearchInput({ placeholder = "Search...", onSearch, debounceMs = 300, className, size = "md" }: SearchInputProps) {
   const [value, setValue] = useState("");
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const debounced = useCallback(
-    (() => {
-      let timer: ReturnType<typeof setTimeout>;
-      return (v: string) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => onSearch(v), debounceMs);
-      };
-    })(),
-    [onSearch, debounceMs]
-  );
-
-  useEffect(() => { debounced(value); }, [value, debounced]);
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => onSearch(value), debounceMs);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [value, onSearch, debounceMs]);
 
   return (
     <div className={cn("relative", className)}>
