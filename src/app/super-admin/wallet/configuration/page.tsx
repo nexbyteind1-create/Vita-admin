@@ -8,6 +8,7 @@ import type { WalletConfig } from "@/lib/types/wallet";
 import { Save, Info, Wallet, Percent, Calendar, CreditCard } from "lucide-react";
 import { formatDate } from "@/lib/utils/format";
 
+// Trigger new build
 export default function WalletConfigurationPage() {
   const [config, setConfig] = useState<WalletConfig>(walletConfig);
   const [saving, setSaving] = useState(false);
