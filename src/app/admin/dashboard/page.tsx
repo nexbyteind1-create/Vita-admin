@@ -51,7 +51,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen">
       <TopHeader title="Admin Dashboard" subtitle="Platform overview & key metrics" role="admin" actions={<ExportMenu reportName="Admin Dashboard" />} />
-      <div className="p-6 space-y-8 max-w-[1600px]">
+      <div className="p-4 sm:p-6 space-y-8 max-w-[1600px]">
         <FilterBar filters={[
           { key: "hospital", label: "All Hospitals", value: "", options: [{ label: "Apollo", value: "apollo" }, { label: "Fortis", value: "fortis" }] },
           { key: "doctor", label: "All Doctors", value: "", options: [] },
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
         {cards.map(section => (
           <section key={section.section}>
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">{section.section}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {section.items.map((card, i) => <StatCard key={i} {...card} />)}
             </div>
           </section>
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
 
         {/* Charts */}
         <section>
-          <h2 className="text-base font-bold text-white mb-4">Analytics Charts</h2>
+          <h2 className="text-base font-bold text-slate-900 mb-4">Analytics Charts</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="glass-card p-6">
               <AreaChartComponent data={userGrowthData} title="User Growth Trend" valueLabel="Total Users" value2Label="New Users" color="#2563eb" color2="#10b981" />

@@ -17,12 +17,12 @@ const reports = [
 ];
 
 const colorMap: Record<string, string> = {
-  blue: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-  emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-  purple: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-  cyan: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
-  amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-  red: "text-red-400 bg-red-500/10 border-red-500/20",
+  blue: "text-red-700 bg-red-50 border-red-200",
+  emerald: "text-emerald-700 bg-emerald-50 border-emerald-200",
+  purple: "text-purple-700 bg-purple-50 border-purple-200",
+  cyan: "text-cyan-700 bg-cyan-50 border-cyan-200",
+  amber: "text-amber-700 bg-amber-50 border-amber-200",
+  red: "text-red-700 bg-red-50 border-red-200",
 };
 
 export default function MembershipReportsPage() {
@@ -39,7 +39,7 @@ export default function MembershipReportsPage() {
   return (
     <div className="min-h-screen">
       <TopHeader title="Membership Reports" subtitle="Generate and export membership analytics reports" role="super-admin" />
-      <div className="p-6 max-w-[1200px]">
+      <div className="p-4 sm:p-6 max-w-[1200px]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {reports.map(r => {
             const Icon = r.icon;
@@ -51,7 +51,7 @@ export default function MembershipReportsPage() {
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-slate-200 mb-0.5">{r.title}</div>
+                  <div className="text-sm font-semibold text-slate-900 mb-0.5">{r.title}</div>
                   <div className="text-xs text-slate-500">{r.desc}</div>
                 </div>
                 <ExportMenu reportName={r.title} />

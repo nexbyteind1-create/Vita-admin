@@ -26,17 +26,17 @@ export default function WalletConfigurationPage() {
       <TopHeader title="Wallet & Credits Configuration" subtitle="Configure wallet module, credit percentages, sources and policies" role="super-admin"
         actions={<Button loading={saving} icon={<Save className="w-4 h-4" />} onClick={handleSave}>{saved ? "Saved!" : "Save Configuration"}</Button>}
       />
-      <div className="p-6 space-y-6 max-w-4xl">
+      <div className="p-4 sm:p-6 space-y-6 max-w-4xl">
         {/* Module Toggle */}
         <div className="glass-card p-6">
-          <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-400" /> Wallet Module</h3>
+          <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2"><Wallet className="w-4 h-4 text-red-600" /> Wallet Module</h3>
           <ToggleSwitch enabled={config.moduleEnabled} onChange={v => setConfig(c => ({ ...c, moduleEnabled: v }))} label="Enable Wallet Module" description="If disabled, users will not be able to earn or view Wallet Credits" />
         </div>
 
         {/* Credit Percentage */}
         <div className={`glass-card p-6 space-y-4 ${!config.moduleEnabled ? "opacity-50 pointer-events-none" : ""}`}>
-          <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Percent className="w-4 h-4 text-emerald-400" /> Credit Percentage Configuration</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2"><Percent className="w-4 h-4 text-emerald-600" /> Credit Percentage Configuration</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { label: "Credit Percentage (%)", key: "creditPercentage", type: "number", step: 0.1 },
               { label: "Minimum Bill Amount (₹)", key: "minBillAmount", type: "number" },
@@ -45,7 +45,7 @@ export default function WalletConfigurationPage() {
               { label: "Max Credits Per Month", key: "maxCreditsPerMonth", type: "number" },
             ].map(field => (
               <div key={field.key}>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">{field.label}</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">{field.label}</label>
                 <input
                   type={field.type}
                   step={field.step}
@@ -56,22 +56,22 @@ export default function WalletConfigurationPage() {
               </div>
             ))}
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">Effective Date</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">Effective Date</label>
               <input type="date" value={config.effectiveDate} onChange={e => setConfig(c => ({ ...c, effectiveDate: e.target.value }))} className="vita-input" />
             </div>
           </div>
-          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-xs text-emerald-300">
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-700">
             💡 Example: {config.creditPercentage}% credit on ₹2,000 bill = {Math.round(2000 * config.creditPercentage / 100)} Credits earned
           </div>
         </div>
 
         {/* Credit Sources */}
         <div className={`glass-card p-6 space-y-4 ${!config.moduleEnabled ? "opacity-50 pointer-events-none" : ""}`}>
-          <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><CreditCard className="w-4 h-4 text-purple-400" /> Eligible Credit Sources</h3>
+          <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2"><CreditCard className="w-4 h-4 text-purple-600" /> Eligible Credit Sources</h3>
           {config.creditSources.map((src, i) => (
-            <div key={src.source} className="flex items-center justify-between py-2 border-b border-[#1f2d45] last:border-0">
+            <div key={src.source} className="flex items-center justify-between py-2 border-b border-slate-200 last:border-0">
               <div>
-                <div className="text-sm font-medium text-slate-200">{src.label}</div>
+                <div className="text-sm font-medium text-slate-900">{src.label}</div>
                 <div className="text-xs text-slate-500">{src.source.replace(/_/g, " ")}</div>
               </div>
               <ToggleSwitch enabled={src.enabled} onChange={v => setConfig(c => ({ ...c, creditSources: c.creditSources.map((s, j) => i === j ? { ...s, enabled: v } : s) }))} size="sm" />
@@ -81,14 +81,14 @@ export default function WalletConfigurationPage() {
 
         {/* Credit Expiry */}
         <div className={`glass-card p-6 space-y-4 ${!config.moduleEnabled ? "opacity-50 pointer-events-none" : ""}`}>
-          <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><Calendar className="w-4 h-4 text-amber-400" /> Credit Expiry Configuration</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2"><Calendar className="w-4 h-4 text-amber-600" /> Credit Expiry Configuration</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Credit Expiry Duration (days)</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Credit Expiry Duration (days)</label>
               <input type="number" value={config.creditExpiryDays} onChange={e => setConfig(c => ({ ...c, creditExpiryDays: Number(e.target.value) }))} className="vita-input" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Notification Period Before Expiry (days)</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Notification Period Before Expiry (days)</label>
               <input type="number" value={config.expiryNotificationDays} onChange={e => setConfig(c => ({ ...c, expiryNotificationDays: Number(e.target.value) }))} className="vita-input" />
             </div>
           </div>
@@ -96,12 +96,12 @@ export default function WalletConfigurationPage() {
         </div>
 
         {/* Redemption (Phase 1 - Disabled) */}
-        <div className="glass-card p-6 border border-amber-500/20 bg-amber-500/5">
+        <div className="glass-card p-6 border border-amber-200 bg-amber-50">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="text-sm font-bold text-amber-300 mb-1">Credit Redemption — Phase 2</h3>
-              <p className="text-xs text-amber-400/80">Credit redemption is disabled in Phase 1. Users can only earn and view credits. Redemption options (appointments, lab discounts, membership discounts, cashback) will be configurable in Phase 2.</p>
+              <h3 className="text-sm font-bold text-amber-700 mb-1">Credit Redemption — Phase 2</h3>
+              <p className="text-xs text-amber-700/80">Credit redemption is disabled in Phase 1. Users can only earn and view credits. Redemption options (appointments, lab discounts, membership discounts, cashback) will be configurable in Phase 2.</p>
             </div>
           </div>
         </div>

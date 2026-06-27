@@ -16,9 +16,9 @@ export default function WalletAuditPage() {
   return (
     <div className="min-h-screen">
       <TopHeader title="Wallet Audit Log" subtitle="Complete history of all wallet configuration changes" role="super-admin" actions={<ExportMenu reportName="Wallet Audit Log" />} />
-      <div className="p-6 space-y-4 max-w-[1200px]">
+      <div className="p-4 sm:p-6 space-y-4 max-w-[1200px]">
         <SearchInput placeholder="Search audit log..." onSearch={setQuery} className="max-w-md" />
-        <div className="glass-card px-6">
+        <div className="glass-card px-4 sm:px-6 overflow-x-auto">
           {filtered.map(log => (
             <AuditLogRow key={log.id} id={log.id} action={log.action} previousStatus={log.previousValue} updatedStatus={log.updatedValue} modifiedBy={log.modifiedBy} modifiedAt={log.modifiedAt} remarks={log.remarks} />
           ))}

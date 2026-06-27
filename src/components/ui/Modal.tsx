@@ -46,21 +46,21 @@ export function Modal({ open, onClose, title, subtitle, size = "md", children, f
       <div className={cn("relative w-full glass-card flex flex-col max-h-[90vh] animate-fade-in-up", sizeMap[size])}>
         {/* Header */}
         {title && (
-          <div className="flex items-start justify-between p-6 border-b border-[#1f2d45]">
+          <div className="flex items-start justify-between p-4 sm:p-6 border-b border-slate-200">
             <div>
-              <h2 className="text-lg font-semibold text-white">{title}</h2>
-              {subtitle && <p className="text-sm text-slate-400 mt-0.5">{subtitle}</p>}
+              <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+              {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
             </div>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors ml-4 flex-shrink-0">
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-colors ml-4 flex-shrink-0">
               <X className="w-5 h-5" />
             </button>
           </div>
         )}
         {/* Body */}
-        <div className="overflow-y-auto flex-1 p-6">{children}</div>
+        <div className="overflow-y-auto flex-1 p-4 sm:p-6">{children}</div>
         {/* Footer */}
         {footer && (
-          <div className="border-t border-[#1f2d45] p-6">{footer}</div>
+          <div className="border-t border-slate-200 p-4 sm:p-6">{footer}</div>
         )}
       </div>
     </div>

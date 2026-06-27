@@ -20,7 +20,7 @@ import {
 
 const sectionTitle = (title: string, subtitle?: string) => (
   <div className="mb-4">
-    <h2 className="text-base font-bold text-white">{title}</h2>
+    <h2 className="text-base font-bold text-slate-900">{title}</h2>
     {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
   </div>
 );
@@ -37,13 +37,13 @@ export default function SuperAdminDashboard() {
         actions={<ExportMenu reportName="Enterprise Dashboard Report" />}
       />
 
-      <div className="p-6 space-y-8 max-w-[1600px]">
+      <div className="p-4 sm:p-6 space-y-8 max-w-[1600px]">
         <FilterBar />
 
         {/* ── Healthcare Activity ── */}
         <section>
           {sectionTitle("Healthcare Activity", "Patient visits, appointments & clinical operations")}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {[
               { label: "Total Patient Visits", value: m.totalPatientVisits, icon: <Heart className="w-full h-full" />, color: "blue" as const, delta: 12.4 },
               { label: "Unique Patients", value: m.uniquePatients, icon: <Users className="w-full h-full" />, color: "emerald" as const, delta: 8.2 },
@@ -56,7 +56,7 @@ export default function SuperAdminDashboard() {
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             {[
               { label: "Completed Appointments", value: m.completedAppointments, icon: <Activity className="w-full h-full" />, color: "emerald" as const },
               { label: "Cancelled", value: m.cancelledAppointments, icon: <AlertCircle className="w-full h-full" />, color: "red" as const },
@@ -81,7 +81,7 @@ export default function SuperAdminDashboard() {
         {/* ── Clinical Documents ── */}
         <section>
           {sectionTitle("Clinical Documents", "Document uploads across the platform")}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
               { label: "Prescriptions", value: m.totalPrescriptions, icon: <FileText className="w-full h-full" />, color: "blue" as const },
               { label: "Lab Reports", value: m.totalLabReports, icon: <FlaskConical className="w-full h-full" />, color: "emerald" as const },
@@ -98,7 +98,7 @@ export default function SuperAdminDashboard() {
         {/* ── Partner Activity ── */}
         <section>
           {sectionTitle("Partner Activity", "Registered healthcare providers & partners")}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
               { label: "Total Hospitals", value: m.totalHospitals, subValue: `${m.activeHospitals} Active`, icon: <Building2 className="w-full h-full" />, color: "blue" as const, delta: 3.2 },
               { label: "Total Doctors", value: m.totalDoctors, subValue: `${m.activeDoctors} Active`, icon: <Stethoscope className="w-full h-full" />, color: "emerald" as const, delta: 5.8 },
@@ -127,7 +127,7 @@ export default function SuperAdminDashboard() {
           {/* Operations */}
           <section>
             {sectionTitle("Operations Dashboard", "Pending items requiring attention")}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { label: "Pending Follow-ups", value: m.pendingFollowUps, icon: <Clock className="w-full h-full" />, color: "amber" as const },
                 { label: "Pending Lab Reports", value: m.pendingLabReports, icon: <FlaskConical className="w-full h-full" />, color: "red" as const },
@@ -140,7 +140,7 @@ export default function SuperAdminDashboard() {
           {/* Platform Health */}
           <section>
             {sectionTitle("Platform Health", "User activity & engagement metrics")}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { label: "Daily Active Users", value: m.dau, icon: <Activity className="w-full h-full" />, color: "blue" as const, delta: 4.2 },
                 { label: "Monthly Active Users", value: m.mau, icon: <Users className="w-full h-full" />, color: "emerald" as const, delta: 8.1 },
@@ -154,7 +154,7 @@ export default function SuperAdminDashboard() {
         {/* ── Membership Analytics ── */}
         <section>
           {sectionTitle("Membership Analytics", "Plan performance & member growth")}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             {[
               { label: "Active Memberships", value: m.activeMemberships, icon: <ShieldCheck className="w-full h-full" />, color: "blue" as const, delta: 6.8 },
               { label: "Silver Members", value: m.silverMembers, icon: <ShieldCheck className="w-full h-full" />, color: "silver" as const },
@@ -180,7 +180,7 @@ export default function SuperAdminDashboard() {
         {/* ── Financial Analytics ── */}
         <section>
           {sectionTitle("Financial Analytics", "Revenue & billing across all categories")}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {[
               { label: "Total Healthcare Spending", value: formatCurrency(m.totalHealthcareSpending), icon: <Wallet className="w-full h-full" />, color: "emerald" as const },
               { label: "Hospital Billing", value: formatCurrency(m.hospitalBilling), icon: <Building2 className="w-full h-full" />, color: "blue" as const },
@@ -210,19 +210,19 @@ export default function SuperAdminDashboard() {
                   <tr key={i}>
                     <td>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-600/30 to-blue-800/30 rounded-lg flex items-center justify-center text-xs font-bold text-blue-400 border border-blue-500/20">
+                        <div className="w-8 h-8 bg-gradient-to-br from-red-100 to-red-200 rounded-lg flex items-center justify-center text-xs font-bold text-red-600 border border-red-200">
                           {i + 1}
                         </div>
-                        <span className="font-medium text-slate-200">{h.name}</span>
+                        <span className="font-medium text-slate-900">{h.name}</span>
                       </div>
                     </td>
-                    <td className="text-slate-400">{h.city}</td>
-                    <td className="text-right font-semibold text-white">{formatNumber(h.appointments)}</td>
+                    <td className="text-slate-500">{h.city}</td>
+                    <td className="text-right font-semibold text-slate-900">{formatNumber(h.appointments)}</td>
                     <td className="text-right">
-                      <span className="text-amber-400 font-semibold">⭐ {h.rating}</span>
+                      <span className="text-amber-600 font-semibold">⭐ {h.rating}</span>
                     </td>
                     <td>
-                      <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                         Active
                       </span>
                     </td>

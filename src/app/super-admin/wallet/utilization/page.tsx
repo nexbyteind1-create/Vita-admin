@@ -29,23 +29,23 @@ export default function WalletUtilizationPage() {
       <TopHeader title="Credit Utilization Policy" subtitle="Configure monthly and per-transaction credit redemption limits" role="super-admin"
         actions={<Button loading={saving} icon={<Save className="w-4 h-4" />} onClick={handleSave}>{saved ? "Saved!" : "Save Policy"}</Button>}
       />
-      <div className="p-6 space-y-6 max-w-4xl">
-        <div className="flex items-start gap-2 p-4 glass-card border border-blue-500/20 bg-blue-500/5 text-xs text-blue-300">
+      <div className="p-4 sm:p-6 space-y-6 max-w-4xl">
+        <div className="flex items-start gap-2 p-4 glass-card border border-blue-200 bg-blue-50 text-xs text-blue-700">
           <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>Credit redemption is currently disabled (Phase 1). This configuration will take effect when redemption is enabled in Phase 2. Updated policies apply only from the effective date and do not affect completed transactions.</span>
         </div>
 
         {/* Monthly Limit */}
         <div className="glass-card p-6">
-          <h3 className="text-sm font-bold text-white mb-4">Monthly Utilization Limit</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="text-sm font-bold text-slate-900 mb-4">Monthly Utilization Limit</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Maximum Credits Per Month</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Maximum Credits Per Month</label>
               <input type="number" value={config.monthlyLimit} onChange={e => setConfig(c => ({ ...c, monthlyLimit: Number(e.target.value) }))} className="vita-input" />
               <p className="text-xs text-slate-500 mt-1">Max wallet credits a user can redeem in one month</p>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Effective Start Date</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Effective Start Date</label>
               <input type="date" value={config.effectiveStartDate} onChange={e => setConfig(c => ({ ...c, effectiveStartDate: e.target.value }))} className="vita-input" />
             </div>
           </div>
@@ -53,18 +53,18 @@ export default function WalletUtilizationPage() {
 
         {/* Transaction Limit */}
         <div className="glass-card p-6">
-          <h3 className="text-sm font-bold text-white mb-4">Transaction Utilization Limit</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="text-sm font-bold text-slate-900 mb-4">Transaction Utilization Limit</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Max Credits Per Transaction</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Max Credits Per Transaction</label>
               <input type="number" value={config.maxCreditsPerTransaction} onChange={e => setConfig(c => ({ ...c, maxCreditsPerTransaction: Number(e.target.value) }))} className="vita-input" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Minimum Transaction Amount (₹)</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Minimum Transaction Amount (₹)</label>
               <input type="number" value={config.minTransactionAmount} onChange={e => setConfig(c => ({ ...c, minTransactionAmount: Number(e.target.value) }))} className="vita-input" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Max Redemption Percentage (%)</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Max Redemption Percentage (%)</label>
               <input type="number" value={config.maxRedemptionPercentage} onChange={e => setConfig(c => ({ ...c, maxRedemptionPercentage: Number(e.target.value) }))} className="vita-input" />
               <p className="text-xs text-slate-500 mt-1">Max % of bill that can be paid using credits</p>
             </div>
@@ -74,7 +74,7 @@ export default function WalletUtilizationPage() {
         {/* Monthly Config Table */}
         <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-white">Monthly Configuration History</h3>
+            <h3 className="text-sm font-bold text-slate-900">Monthly Configuration History</h3>
             <Button size="sm" icon={<Plus className="w-4 h-4" />}>Add Month</Button>
           </div>
           <div className="overflow-x-auto">
@@ -83,9 +83,9 @@ export default function WalletUtilizationPage() {
               <tbody>
                 {monthlyUtilizationConfig.map(m => (
                   <tr key={m.month}>
-                    <td className="font-medium text-slate-200">{m.month} {m.year}</td>
-                    <td className="text-right font-bold text-emerald-400">{m.monthlyLimit} Credits</td>
-                    <td className="text-slate-400">{formatDate(m.effectiveDate)}</td>
+                    <td className="font-medium text-slate-900">{m.month} {m.year}</td>
+                    <td className="text-right font-bold text-emerald-700">{m.monthlyLimit} Credits</td>
+                    <td className="text-slate-500">{formatDate(m.effectiveDate)}</td>
                     <td className="text-center"><Button size="xs" variant="ghost" icon={<Edit className="w-3 h-3" />}>Edit</Button></td>
                   </tr>
                 ))}
@@ -96,12 +96,12 @@ export default function WalletUtilizationPage() {
 
         {/* Policy Version History */}
         <div className="glass-card p-6">
-          <h3 className="text-sm font-bold text-white mb-4">Policy Version History</h3>
+          <h3 className="text-sm font-bold text-slate-900 mb-4">Policy Version History</h3>
           {utilizationPolicies.map((p, i) => (
-            <div key={p.id} className="flex items-start gap-3 py-3 border-b border-[#1f2d45] last:border-0">
-              <span className="text-xs font-bold bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30 flex-shrink-0">v{utilizationPolicies.length - i}</span>
+            <div key={p.id} className="flex items-start gap-3 py-3 border-b border-slate-200 last:border-0">
+              <span className="text-xs font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded-full border border-red-200 flex-shrink-0">v{utilizationPolicies.length - i}</span>
               <div className="flex-1">
-                <div className="flex items-center gap-4 text-xs text-slate-300">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-700">
                   <span>Monthly Limit: <strong>{p.monthlyLimit}</strong></span>
                   <span>Per Transaction: <strong>{p.maxCreditsPerTransaction}</strong></span>
                   <span>Max %: <strong>{p.maxRedemptionPercentage}%</strong></span>

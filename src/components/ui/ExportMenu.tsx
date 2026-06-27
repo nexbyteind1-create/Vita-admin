@@ -35,7 +35,7 @@ export function ExportMenu({ reportName, className }: ExportMenuProps) {
         onClick={() => setOpen(o => !o)}
         className={cn(
           "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200",
-          success ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/15 hover:border-blue-400/50"
+          success ? "border-emerald-200 bg-emerald-50 text-emerald-600" : "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-300"
         )}
       >
         <Download className="w-4 h-4" />
@@ -45,20 +45,20 @@ export function ExportMenu({ reportName, className }: ExportMenuProps) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-48 glass-card py-1 z-20 border border-[#1f2d45] animate-fade-in-up">
+          <div className="absolute right-0 top-full mt-2 w-48 glass-card py-1 z-20 border border-slate-200 animate-fade-in-up">
             {formats.map(f => (
               <button
                 key={f.format}
                 onClick={() => handleExport(f.format)}
                 disabled={loading !== null}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left"
               >
                 <span className="text-slate-400">{f.icon}</span>
                 <div>
-                  <div className="text-sm font-medium text-slate-200">{f.label}</div>
-                  <div className="text-xs text-slate-500">{f.desc}</div>
+                  <div className="text-sm font-medium text-slate-900">{f.label}</div>
+                  <div className="text-xs text-slate-400">{f.desc}</div>
                 </div>
-                {loading === f.format && <div className="ml-auto w-4 h-4 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />}
+                {loading === f.format && <div className="ml-auto w-4 h-4 border-2 border-red-300 border-t-red-600 rounded-full animate-spin" />}
               </button>
             ))}
           </div>

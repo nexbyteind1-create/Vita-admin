@@ -16,12 +16,12 @@ import { Stethoscope, CheckCircle, XCircle, Eye, Star } from "lucide-react";
 
 const columns: Column<Doctor>[] = [
   { key: "name", header: "Doctor", sortable: true, render: d => (
-    <div><div className="text-sm font-semibold text-slate-200">{d.name}</div><div className="text-xs text-slate-500">{d.licenseNumber}</div></div>
+    <div><div className="text-sm font-semibold text-slate-900">{d.name}</div><div className="text-xs text-slate-500">{d.licenseNumber}</div></div>
   )},
-  { key: "specialty", header: "Specialty", render: d => <span className="text-slate-400 text-sm">{d.specialty}</span> },
-  { key: "hospital", header: "Hospital", render: d => <span className="text-slate-400 text-sm">{d.hospital}</span> },
+  { key: "specialty", header: "Specialty", render: d => <span className="text-slate-500 text-sm">{d.specialty}</span> },
+  { key: "hospital", header: "Hospital", render: d => <span className="text-slate-500 text-sm">{d.hospital}</span> },
   { key: "totalAppointments", header: "Appointments", align: "right", render: d => <span className="font-semibold">{formatNumber(d.totalAppointments)}</span> },
-  { key: "rating", header: "Rating", align: "center", render: d => <span className="text-amber-400 font-semibold">⭐ {d.rating}</span> },
+  { key: "rating", header: "Rating", align: "center", render: d => <span className="text-amber-600 font-semibold">⭐ {d.rating}</span> },
   { key: "verificationStatus", header: "Verification", render: d => <Badge variant={d.verificationStatus as "verified" | "pending" | "rejected"} label={d.verificationStatus} /> },
   { key: "status", header: "Status", render: d => <Badge variant={d.status} /> },
 ];
@@ -80,8 +80,8 @@ export default function EntityDoctorsPage() {
           </div>
         }
       />
-      <div className="p-6 space-y-6 max-w-[1600px]">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard label="Total Doctors" value={doctorList.length} icon={<Stethoscope className="w-full h-full" />} color="blue" />
           <StatCard label="Verified" value={doctorList.filter(d => d.verificationStatus === "verified").length} icon={<CheckCircle className="w-full h-full" />} color="emerald" />
           <StatCard label="Pending Verification" value={doctorList.filter(d => d.verificationStatus === "pending").length} icon={<Eye className="w-full h-full" />} color="amber" />
@@ -104,13 +104,13 @@ export default function EntityDoctorsPage() {
           {selected && (
             <div className="space-y-3">
               {[["License", selected.licenseNumber], ["Hospital", selected.hospital], ["Appointments", formatNumber(selected.totalAppointments)], ["Rating", `⭐ ${selected.rating}`], ["Verification", selected.verificationStatus], ["Status", selected.status], ["Registered", formatDate(selected.createdAt)]].map(([l, v]) => (
-                <div key={l} className="flex justify-between py-2 border-b border-[#1f2d45] text-sm"><span className="text-slate-500">{l}</span><span className="font-medium text-slate-200">{v}</span></div>
+                <div key={l} className="flex justify-between py-2 border-b border-slate-200 text-sm"><span className="text-slate-500">{l}</span><span className="font-medium text-slate-900">{v}</span></div>
               ))}
             </div>
           )}
         </Modal>
         <Modal open={!!actionModal} onClose={() => setActionModal(null)} title={`Confirm: ${actionModal?.action}`} size="sm">
-          <p className="text-slate-300 text-sm mb-4">Are you sure you want to <strong>{actionModal?.action}</strong> <strong>{actionModal?.entity.name}</strong>? {actionModal?.action === "suspend" && "Blocked doctors will not be available for appointment booking."}</p>
+          <p className="text-slate-600 text-sm mb-4">Are you sure you want to <strong>{actionModal?.action}</strong> <strong>{actionModal?.entity.name}</strong>? {actionModal?.action === "suspend" && "Blocked doctors will not be available for appointment booking."}</p>
           <div className="flex gap-2">
             <Button variant={actionModal?.action === "suspend" ? "danger" : "success"} className="flex-1" onClick={() => setActionModal(null)}>Confirm</Button>
             <Button variant="secondary" onClick={() => setActionModal(null)}>Cancel</Button>
@@ -128,7 +128,7 @@ export default function EntityDoctorsPage() {
               <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">License Number</label>
               <input value={newDoctor.licenseNumber} onChange={e => setNewDoctor(d => ({ ...d, licenseNumber: e.target.value }))} className="vita-input" placeholder="LIC-TG-2026-9481" required />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Specialty</label>
                 <input value={newDoctor.specialty} onChange={e => setNewDoctor(d => ({ ...d, specialty: e.target.value }))} className="vita-input" placeholder="Cardiology" required />
@@ -138,7 +138,7 @@ export default function EntityDoctorsPage() {
                 <input value={newDoctor.hospital} onChange={e => setNewDoctor(d => ({ ...d, hospital: e.target.value }))} className="vita-input" placeholder="Apollo Hospitals" />
               </div>
             </div>
-            <div className="flex gap-2 pt-4 border-t border-[#1f2d45]">
+            <div className="flex gap-2 pt-4 border-t border-slate-200">
               <Button type="submit" className="flex-1">Add Doctor</Button>
               <Button type="button" variant="secondary" onClick={() => setCreateModal(false)}>Cancel</Button>
             </div>

@@ -43,11 +43,11 @@ export default function MembershipRulesPage() {
 
   const ruleSection = (title: string, items: { key: keyof RuleConfig; label: string; description: string; isToggle: boolean; unit?: string }[]) => (
     <div className="glass-card p-6 space-y-4">
-      <h3 className="text-sm font-bold text-white border-b border-[#1f2d45] pb-3">{title}</h3>
+      <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">{title}</h3>
       {items.map(item => (
-        <div key={item.key} className="flex items-center justify-between gap-4 py-1">
+        <div key={item.key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
           <div className="flex-1">
-            <div className="text-sm font-medium text-slate-200">{item.label}</div>
+            <div className="text-sm font-medium text-slate-900">{item.label}</div>
             <div className="text-xs text-slate-500 mt-0.5">{item.description}</div>
           </div>
           {item.isToggle ? (
@@ -68,8 +68,8 @@ export default function MembershipRulesPage() {
       <TopHeader title="Membership Rules & Configuration" subtitle="Configure renewal, upgrade, trial, and promotional policies" role="super-admin"
         actions={<Button loading={saving} icon={<Save className="w-4 h-4" />} onClick={handleSave}>{saved ? "Saved!" : "Save Rules"}</Button>}
       />
-      <div className="p-6 max-w-4xl space-y-6">
-        <div className="flex items-start gap-2 p-4 glass-card border border-blue-500/20 bg-blue-500/5 text-xs text-blue-300">
+      <div className="p-4 sm:p-6 max-w-4xl space-y-6">
+        <div className="flex items-start gap-2 p-4 glass-card border border-red-200 bg-red-50 text-xs text-red-700">
           <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>Changes to membership rules apply to all new transactions immediately. Existing active memberships are not retroactively affected.</span>
         </div>

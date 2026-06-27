@@ -19,12 +19,12 @@ export default function AdminMembershipDashboard() {
   return (
     <div className="min-h-screen">
       <TopHeader title="Membership Dashboard" subtitle="Membership performance and analytics" role="admin" actions={<ExportMenu reportName="Membership Dashboard" />} />
-      <div className="p-6 space-y-6 max-w-[1600px]">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
         <FilterBar filters={[
           { key: "tier", label: "All Tiers", value: "", options: [{ label: "Silver", value: "silver" }, { label: "Gold", value: "gold" }, { label: "Platinum", value: "platinum" }] },
         ]} />
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
           <StatCard label="Active Memberships" value={totalActive} icon={<ShieldCheck className="w-full h-full" />} color="blue" delta={6.8} />
           <StatCard label="Silver Members" value={membershipAnalytics[0].activeMembers} icon={<ShieldCheck className="w-full h-full" />} color="silver" />
           <StatCard label="Gold Members" value={membershipAnalytics[1].activeMembers} icon={<ShieldCheck className="w-full h-full" />} color="amber" />
@@ -32,7 +32,7 @@ export default function AdminMembershipDashboard() {
           <StatCard label="Membership Revenue" value={formatCurrency(totalRevenue)} icon={<TrendingUp className="w-full h-full" />} color="emerald" />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard label="Total Renewals" value={totalRenewals} icon={<RefreshCw className="w-full h-full" />} color="blue" />
           <StatCard label="Expired Members" value={totalExpired} icon={<XCircle className="w-full h-full" />} color="red" />
           <StatCard label="Avg Renewal Rate" value={formatPercent(membershipAnalytics.reduce((s, a) => s + a.renewalRate, 0) / 3)} icon={<Target className="w-full h-full" />} color="emerald" />
@@ -44,7 +44,7 @@ export default function AdminMembershipDashboard() {
         </div>
 
         <section>
-          <h2 className="text-base font-bold text-white mb-4">Recent Changes</h2>
+          <h2 className="text-base font-bold text-slate-900 mb-4">Recent Changes</h2>
           <div className="glass-card px-6">
             {membershipAuditLogs.map(log => (
               <AuditLogRow key={log.id} id={log.id} action={log.action} entity={log.planName} modifiedBy={log.modifiedBy} modifiedAt={log.modifiedAt} remarks={log.remarks} />

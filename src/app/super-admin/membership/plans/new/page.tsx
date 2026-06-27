@@ -53,25 +53,25 @@ export default function CreateMembershipPlanPage() {
   return (
     <div className="min-h-screen">
       <TopHeader title="Create Custom Plan" subtitle="Design and launch a custom membership tier" role="super-admin" />
-      <div className="p-6 max-w-4xl space-y-6">
+      <div className="p-4 sm:p-6 max-w-4xl space-y-6">
         {/* Wizard Steps indicator */}
-        <div className="flex items-center gap-2 bg-[#0d1526] border border-[#1f2d45] rounded-xl p-2 max-w-md">
-          <div className={cn("flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all", step === 1 ? "bg-blue-600 text-white" : "text-slate-500")}>1. Plan Details</div>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-          <div className={cn("flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all", step === 2 ? "bg-blue-600 text-white" : "text-slate-500")}>2. Feature Config</div>
+        <div className="flex flex-col sm:flex-row items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 max-w-md">
+          <div className={cn("flex-1 w-full py-2 text-center rounded-lg text-xs font-bold transition-all", step === 1 ? "bg-red-600 text-white" : "text-slate-500")}>1. Plan Details</div>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400 rotate-90 sm:rotate-0" />
+          <div className={cn("flex-1 w-full py-2 text-center rounded-lg text-xs font-bold transition-all", step === 2 ? "bg-red-600 text-white" : "text-slate-500")}>2. Feature Config</div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {step === 1 ? (
             <div className="glass-card p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white border-b border-[#1f2d45] pb-3">Plan Details</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">Plan Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Plan Name</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Plan Name</label>
                   <input value={planDetails.name} onChange={e => setPlanDetails(p => ({ ...p, name: e.target.value }))} className="vita-input" placeholder="Gold Premium" required />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Tier</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Tier</label>
                   <select value={planDetails.tier} onChange={e => setPlanDetails(p => ({ ...p, tier: e.target.value }))} className="vita-input">
                     <option value="custom">Custom Tier</option>
                     <option value="silver">Silver Tier</option>
@@ -80,21 +80,21 @@ export default function CreateMembershipPlanPage() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Annual Price (₹)</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Annual Price (₹)</label>
                   <input type="number" value={planDetails.price} onChange={e => setPlanDetails(p => ({ ...p, price: Number(e.target.value) }))} className="vita-input" required />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Validity (days)</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Validity (days)</label>
                   <input type="number" value={planDetails.validityDays} onChange={e => setPlanDetails(p => ({ ...p, validityDays: Number(e.target.value) }))} className="vita-input" required />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Max Family Members</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Max Family Members</label>
                   <input type="number" value={planDetails.maxFamilyMembers} onChange={e => setPlanDetails(p => ({ ...p, maxFamilyMembers: Number(e.target.value) }))} className="vita-input" required />
                 </div>
               </div>
-              <div className="flex justify-end pt-4 border-t border-[#1f2d45]">
+              <div className="flex justify-end pt-4 border-t border-slate-200">
                 <Button type="submit" iconRight={<ChevronRight className="w-4 h-4" />}>Configure Features</Button>
               </div>
             </div>
@@ -102,16 +102,16 @@ export default function CreateMembershipPlanPage() {
             <div className="space-y-6">
               {/* Features List */}
               <div className="glass-card p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-[#1f2d45] pb-3">
-                  <h3 className="text-sm font-bold text-white">Enable Plan Features</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                  <h3 className="text-sm font-bold text-slate-900">Enable Plan Features</h3>
                   <Button type="button" size="sm" variant="secondary" icon={<Plus className="w-3.5 h-3.5" />} onClick={() => setFeatures(prev => [...prev, { name: "Custom Benefit", category: "Discounts", enabled: true, percentage: 10 }])}>Add Custom Feature</Button>
                 </div>
 
                 <div className="space-y-3">
                   {features.map((feature, i) => (
-                    <div key={i} className="flex items-center justify-between gap-4 p-3 bg-[#0d1526] rounded-xl border border-[#1f2d45]">
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="flex-1">
-                        <input value={feature.name} onChange={e => setFeatures(fs => fs.map((x, j) => i === j ? { ...x, name: e.target.value } : x))} className="vita-input py-1 text-sm bg-transparent border-0 focus:ring-0 max-w-xs font-medium text-slate-200" />
+                        <input value={feature.name} onChange={e => setFeatures(fs => fs.map((x, j) => i === j ? { ...x, name: e.target.value } : x))} className="vita-input py-1 text-sm bg-transparent border-0 focus:ring-0 max-w-xs font-medium text-slate-700" />
                         <div className="text-xs text-slate-500 px-2 mt-0.5">{feature.category}</div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -130,7 +130,7 @@ export default function CreateMembershipPlanPage() {
                   ))}
                 </div>
 
-                <div className="flex justify-between pt-4 border-t border-[#1f2d45]">
+                <div className="flex justify-between pt-4 border-t border-slate-200">
                   <Button type="button" variant="secondary" onClick={() => setStep(1)}>Back</Button>
                   <Button type="submit" loading={loading} icon={<Check className="w-4 h-4" />}>Launch Membership Plan</Button>
                 </div>

@@ -29,7 +29,7 @@ export function SearchInput({ placeholder = "Search...", onSearch, debounceMs = 
 
   return (
     <div className={cn("relative", className)}>
-      <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-slate-500", size === "sm" ? "w-3.5 h-3.5" : "w-4 h-4")} />
+      <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 text-slate-400", size === "sm" ? "w-3.5 h-3.5" : "w-4 h-4")} />
       <input
         type="text"
         value={value}
@@ -41,7 +41,7 @@ export function SearchInput({ placeholder = "Search...", onSearch, debounceMs = 
         )}
       />
       {value && (
-        <button onClick={() => setValue("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+        <button onClick={() => setValue("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
           <X className="w-3.5 h-3.5" />
         </button>
       )}

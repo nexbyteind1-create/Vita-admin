@@ -6,13 +6,13 @@ type ButtonVariant = "primary" | "secondary" | "danger" | "ghost" | "outline" | 
 type ButtonSize = "xs" | "sm" | "md" | "lg";
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary:   "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/30",
-  secondary: "bg-slate-700/60 hover:bg-slate-600/60 text-slate-200 border border-slate-600/50",
-  danger:    "bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30",
-  ghost:     "hover:bg-white/5 text-slate-400 hover:text-slate-200",
-  outline:   "border border-blue-500/40 hover:border-blue-400 text-blue-400 hover:bg-blue-500/10",
-  success:   "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30",
-  warning:   "bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30",
+  primary:   "bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-900/10",
+  secondary: "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200",
+  danger:    "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200",
+  ghost:     "hover:bg-slate-100 text-slate-500 hover:text-slate-900",
+  outline:   "border border-red-300 hover:border-red-400 text-red-600 hover:bg-red-50",
+  success:   "bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200",
+  warning:   "bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

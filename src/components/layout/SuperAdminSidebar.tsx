@@ -5,9 +5,10 @@ import { cn } from "@/lib/utils/cn";
 import {
   LayoutDashboard, Users, Building2, Stethoscope, FlaskConical, Scan,
   Store, Wallet, Bot, ChevronDown, ShieldCheck, HeartPulse, Settings,
-  UserCog, FileBarChart
+  UserCog, FileBarChart, X
 } from "lucide-react";
 import { useState } from "react";
+import { useSidebar } from "./SidebarContext";
 
 interface NavItem {
   label: string;
@@ -57,7 +58,7 @@ const navItems: NavItem[] = [
   { label: "AI Analytics", href: "/super-admin/ai-analytics", icon: <Bot className="w-4 h-4" />, badge: "AI" },
 ];
 
-function NavGroup({ item }: { item: NavItem }) {
+function NavGroup({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const pathname = usePathname();
   const isChildActive = item.children?.some(c => pathname.startsWith(c.href));
   const isActive = item.href ? pathname === item.href || pathname.startsWith(item.href) : false;
@@ -66,15 +67,15 @@ function NavGroup({ item }: { item: NavItem }) {
   if (item.children) {
     return (
       <div>
-        <button onClick={() => setOpen(o => !o)} className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group", isChildActive ? "text-blue-400" : "text-slate-400 hover:text-slate-200 hover:bg-white/5")}>
-          <span className={cn("flex-shrink-0", isChildActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300")}>{item.icon}</span>
+        <button onClick={() => setOpen(o => !o)} className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group", isChildActive ? "text-red-600" : "text-slate-500 hover:text-slate-900 hover:bg-slate-100")}>
+          <span className={cn("flex-shrink-0", isChildActive ? "text-red-600" : "text-slate-400 group-hover:text-slate-600")}>{item.icon}</span>
           <span className="flex-1 text-left">{item.label}</span>
-          <ChevronDown className={cn("w-3.5 h-3.5 transition-transform text-slate-500", open && "rotate-180")} />
+          <ChevronDown className={cn("w-3.5 h-3.5 transition-transform text-slate-400", open && "rotate-180")} />
         </button>
         {open && (
-          <div className="ml-7 mt-1 space-y-0.5 border-l border-[#1f2d45] pl-3">
+          <div className="ml-7 mt-1 space-y-0.5 border-l border-slate-200 pl-3">
             {item.children.map(child => (
-              <Link key={child.href} href={child.href} className={cn("block px-3 py-2 text-xs rounded-lg transition-all font-medium", pathname === child.href || pathname.startsWith(child.href) ? "text-blue-400 bg-blue-500/10" : "text-slate-500 hover:text-slate-200 hover:bg-white/5")}>
+              <Link key={child.href} href={child.href} onClick={onNavigate} className={cn("block px-3 py-2 text-xs rounded-lg transition-all font-medium", pathname === child.href || pathname.startsWith(child.href) ? "text-red-600 bg-red-50" : "text-slate-500 hover:text-slate-900 hover:bg-slate-100")}>
                 {child.label}
               </Link>
             ))}
@@ -85,45 +86,57 @@ function NavGroup({ item }: { item: NavItem }) {
   }
 
   return (
-    <Link href={item.href!} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group", isActive ? "sidebar-active" : "text-slate-400 hover:text-slate-200 hover:bg-white/5")}>
-      <span className={cn("flex-shrink-0", isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300")}>{item.icon}</span>
+    <Link href={item.href!} onClick={onNavigate} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group", isActive ? "sidebar-active" : "text-slate-500 hover:text-slate-900 hover:bg-slate-100")}>
+      <span className={cn("flex-shrink-0", isActive ? "text-red-600" : "text-slate-400 group-hover:text-slate-600")}>{item.icon}</span>
       <span className="flex-1">{item.label}</span>
-      {item.badge && <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-blue-500 to-emerald-500 text-white rounded-full">{item.badge}</span>}
+      {item.badge && <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-red-600 to-rose-500 text-white rounded-full">{item.badge}</span>}
     </Link>
   );
 }
 
 export function SuperAdminSidebar() {
+  const { isOpen, close: onClose } = useSidebar();
   return (
-    <aside className="flex flex-col h-screen w-64 bg-[#0d1526] border-r border-[#1f2d45] flex-shrink-0">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-[#1f2d45]">
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
-          <HeartPulse className="w-4.5 h-4.5 text-white" />
+    <>
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={onClose} />
+      )}
+      <aside className={cn(
+        "flex flex-col h-screen w-64 bg-white border-r border-slate-200 flex-shrink-0 fixed inset-y-0 left-0 z-40 transition-transform duration-200 lg:static lg:translate-x-0",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-200">
+          <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-rose-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <HeartPulse className="w-4.5 h-4.5 text-white" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-bold text-slate-900 tracking-tight">VitaAdmin</div>
+            <div className="text-xs bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent font-semibold">Super Admin</div>
+          </div>
+          <button onClick={onClose} className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <div>
-          <div className="text-sm font-bold text-white tracking-tight">VitaAdmin</div>
-          <div className="text-xs bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent font-semibold">Super Admin</div>
-        </div>
-      </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-        {navItems.map(item => (
-          <NavGroup key={item.label} item={item} />
-        ))}
-      </nav>
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+          {navItems.map(item => (
+            <NavGroup key={item.label} item={item} onNavigate={onClose} />
+          ))}
+        </nav>
 
-      {/* User */}
-      <div className="p-4 border-t border-[#1f2d45]">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0">SA</div>
-          <div className="min-w-0">
-            <div className="text-xs font-semibold text-slate-200 truncate">Super Admin</div>
-            <div className="text-xs text-slate-500 truncate">admin@vita.health</div>
+        {/* User */}
+        <div className="p-4 border-t border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-rose-600 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0">SA</div>
+            <div className="min-w-0">
+              <div className="text-xs font-semibold text-slate-700 truncate">Super Admin</div>
+              <div className="text-xs text-slate-400 truncate">admin@vita.health</div>
+            </div>
           </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

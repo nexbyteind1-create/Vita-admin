@@ -27,8 +27,8 @@ export function ToggleSwitch({ enabled, onChange, label, description, disabled, 
       />
       {(label || description) && (
         <div>
-          {label && <div className="text-sm font-medium text-slate-200">{label}</div>}
-          {description && <div className="text-xs text-slate-500">{description}</div>}
+          {label && <div className="text-sm font-medium text-slate-900">{label}</div>}
+          {description && <div className="text-xs text-slate-400">{description}</div>}
         </div>
       )}
     </div>

@@ -15,10 +15,10 @@ import type { Column } from "@/components/ui/DataTable";
 import { FlaskConical, CheckCircle, XCircle, Eye, AlertCircle } from "lucide-react";
 
 const columns: Column<Laboratory>[] = [
-  { key: "name", header: "Laboratory", sortable: true, render: l => <div><div className="text-sm font-semibold text-slate-200">{l.name}</div><div className="text-xs text-slate-500">{l.licenseNumber}</div></div> },
-  { key: "city", header: "Location", render: l => <span className="text-slate-400 text-sm">{l.city}, {l.state}</span> },
+  { key: "name", header: "Laboratory", sortable: true, render: l => <div><div className="text-sm font-semibold text-slate-900">{l.name}</div><div className="text-xs text-slate-500">{l.licenseNumber}</div></div> },
+  { key: "city", header: "Location", render: l => <span className="text-slate-500 text-sm">{l.city}, {l.state}</span> },
   { key: "totalBookings", header: "Bookings", align: "right", render: l => <span className="font-semibold">{formatNumber(l.totalBookings)}</span> },
-  { key: "pendingReports", header: "Pending", align: "center", render: l => <span className={`font-semibold ${l.pendingReports > 100 ? "text-red-400" : "text-amber-400"}`}>{l.pendingReports}</span> },
+  { key: "pendingReports", header: "Pending", align: "center", render: l => <span className={`font-semibold ${l.pendingReports > 100 ? "text-red-600" : "text-amber-600"}`}>{l.pendingReports}</span> },
   { key: "approvalStatus", header: "Approval", render: l => <Badge variant={l.approvalStatus as "approved" | "pending" | "rejected"} label={l.approvalStatus} /> },
   { key: "status", header: "Status", render: l => <Badge variant={l.status} /> },
 ];
@@ -76,8 +76,8 @@ export default function EntityLaboratoriesPage() {
           </div>
         }
       />
-      <div className="p-6 space-y-6 max-w-[1600px]">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard label="Total Labs" value={labList.length} icon={<FlaskConical className="w-full h-full" />} color="blue" />
           <StatCard label="Active" value={labList.filter(l => l.status === "active").length} icon={<CheckCircle className="w-full h-full" />} color="emerald" />
           <StatCard label="Total Bookings" value={labList.reduce((s, l) => s + l.totalBookings, 0)} icon={<FlaskConical className="w-full h-full" />} color="purple" />
@@ -97,7 +97,7 @@ export default function EntityLaboratoriesPage() {
         <Modal open={!!selected} onClose={() => setSelected(null)} title={selected?.name} subtitle={selected?.licenseNumber} size="md">
           {selected && <div className="space-y-3">
             {[["Location", `${selected.city}, ${selected.state}`], ["Total Bookings", formatNumber(selected.totalBookings)], ["Pending Reports", selected.pendingReports], ["Status", selected.status], ["Registered", formatDate(selected.createdAt)]].map(([l, v]) => (
-              <div key={l} className="flex justify-between py-2 border-b border-[#1f2d45] text-sm"><span className="text-slate-500">{l}</span><span className="font-medium text-slate-200">{String(v)}</span></div>
+              <div key={l} className="flex justify-between py-2 border-b border-slate-200 text-sm"><span className="text-slate-500">{l}</span><span className="font-medium text-slate-900">{String(v)}</span></div>
             ))}
           </div>}
         </Modal>
@@ -113,7 +113,7 @@ export default function EntityLaboratoriesPage() {
               <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">License Number</label>
               <input value={newLab.licenseNumber} onChange={e => setNewLab(l => ({ ...l, licenseNumber: e.target.value }))} className="vita-input" placeholder="LAB-TG-2026-8421" required />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">City</label>
                 <input value={newLab.city} onChange={e => setNewLab(l => ({ ...l, city: e.target.value }))} className="vita-input" placeholder="Hyderabad" />
@@ -123,7 +123,7 @@ export default function EntityLaboratoriesPage() {
                 <input value={newLab.state} onChange={e => setNewLab(l => ({ ...l, state: e.target.value }))} className="vita-input" placeholder="Telangana" />
               </div>
             </div>
-            <div className="flex gap-2 pt-4 border-t border-[#1f2d45]">
+            <div className="flex gap-2 pt-4 border-t border-slate-200">
               <Button type="submit" className="flex-1">Add Laboratory</Button>
               <Button type="button" variant="secondary" onClick={() => setCreateModal(false)}>Cancel</Button>
             </div>

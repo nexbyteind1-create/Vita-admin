@@ -18,7 +18,7 @@ export default function MembershipAuditPage() {
   return (
     <div className="min-h-screen">
       <TopHeader title="Membership Audit Log" subtitle="Complete history of all membership configuration changes" role="super-admin" actions={<ExportMenu reportName="Membership Audit Log" />} />
-      <div className="p-6 space-y-4 max-w-[1200px]">
+      <div className="p-4 sm:p-6 space-y-4 max-w-[1200px]">
         <div className="flex flex-wrap items-center gap-3">
           <SearchInput placeholder="Search by action, plan, or modified by..." onSearch={setQuery} className="max-w-md flex-1" />
           <FilterBar />
@@ -40,7 +40,7 @@ export default function MembershipAuditPage() {
             ))
           )}
         </div>
-        <p className="text-xs text-slate-600 text-center">Showing {filtered.length} entries · Audit logs are retained for 5 years</p>
+        <p className="text-xs text-slate-400 text-center">Showing {filtered.length} entries · Audit logs are retained for 5 years</p>
       </div>
     </div>
   );

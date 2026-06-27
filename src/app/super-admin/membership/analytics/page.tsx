@@ -35,7 +35,7 @@ export default function SuperAdminMembershipAnalytics() {
     <div className="min-h-screen">
       <TopHeader title="Membership Analytics" subtitle="Feature usage, adoption & conversion metrics" role="super-admin" actions={<ExportMenu reportName="Membership Analytics" />} />
 
-      <div className="p-6 space-y-6 max-w-[1600px]">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
         <FilterBar filters={[
           { key: "tier", label: "All Tiers", value: "", options: [{ label: "Silver", value: "silver" }, { label: "Gold", value: "gold" }, { label: "Platinum", value: "platinum" }] },
           { key: "hospital", label: "All Hospitals", value: "", options: [] },
@@ -45,10 +45,10 @@ export default function SuperAdminMembershipAnalytics() {
         {/* Per-Tier Stats */}
         {membershipAnalytics.map(a => (
           <section key={a.tier}>
-            <h2 className={`text-sm font-bold uppercase tracking-wider mb-3 ${a.tier === "gold" ? "text-amber-400" : a.tier === "platinum" ? "text-purple-400" : "text-slate-400"}`}>
+            <h2 className={`text-sm font-bold uppercase tracking-wider mb-3 ${a.tier === "gold" ? "text-amber-600" : a.tier === "platinum" ? "text-purple-600" : "text-slate-500"}`}>
               {a.tier.toUpperCase()} TIER
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
               <StatCard label="Total Users" value={a.totalUsers} icon={<Users className="w-full h-full" />} color={a.tier === "gold" ? "amber" : a.tier === "platinum" ? "purple" : "silver"} />
               <StatCard label="Active Members" value={a.activeMembers} icon={<Shield className="w-full h-full" />} color="emerald" />
               <StatCard label="Expired Members" value={a.expiredMembers} icon={<Users className="w-full h-full" />} color="red" />
@@ -71,7 +71,7 @@ export default function SuperAdminMembershipAnalytics() {
         {/* Audit Log */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-white">Recent Audit Log</h2>
+            <h2 className="text-base font-bold text-slate-900">Recent Audit Log</h2>
             <ExportMenu reportName="Membership Audit Log" />
           </div>
           <div className="glass-card px-6">

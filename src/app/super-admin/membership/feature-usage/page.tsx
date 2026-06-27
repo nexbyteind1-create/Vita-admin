@@ -19,15 +19,15 @@ export default function MembershipFeatureUsagePage() {
   return (
     <div className="min-h-screen">
       <TopHeader title="Feature Usage Analytics" subtitle="Remaining and utilized benefits per membership tier" role="super-admin" actions={<ExportMenu reportName="Feature Usage Report" />} />
-      <div className="p-6 space-y-6 max-w-[1600px]">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
         <FilterBar filters={[
           { key: "tier", label: "All Tiers", value: "", options: [{ label: "Silver", value: "silver" }, { label: "Gold", value: "gold" }, { label: "Platinum", value: "platinum" }] },
         ]} />
 
         {/* Detailed Feature Table */}
         <div className="glass-card overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#1f2d45]">
-            <h2 className="text-sm font-bold text-white">Avg Benefits Per Member (as of this month)</h2>
+          <div className="px-6 py-4 border-b border-slate-200">
+            <h2 className="text-sm font-bold text-slate-900">Avg Benefits Per Member (as of this month)</h2>
             <p className="text-xs text-slate-500 mt-0.5">Based on active member benefit consumption</p>
           </div>
           <div className="overflow-x-auto">
@@ -48,13 +48,13 @@ export default function MembershipFeatureUsagePage() {
                     <tr key={f.feature}>
                       <td>
                         <div className="flex items-center gap-2">
-                          <Activity className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                          <span className="font-medium text-slate-200">{f.feature}</span>
+                          <Activity className="w-4 h-4 text-red-600 flex-shrink-0" />
+                          <span className="font-medium text-slate-900">{f.feature}</span>
                         </div>
                       </td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <span className="text-slate-200 font-semibold">{f.silver.used}</span>
+                          <span className="text-slate-900 font-semibold">{f.silver.used}</span>
                           <span className="text-slate-500">/ {f.silver.total}</span>
                         </div>
                         <div className="vita-progress mt-1.5 w-20 mx-auto">
@@ -63,7 +63,7 @@ export default function MembershipFeatureUsagePage() {
                       </td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <span className="text-slate-200 font-semibold">{f.gold.used}</span>
+                          <span className="text-slate-900 font-semibold">{f.gold.used}</span>
                           <span className="text-slate-500">/ {f.gold.total}</span>
                         </div>
                         <div className="vita-progress mt-1.5 w-20 mx-auto">
@@ -72,7 +72,7 @@ export default function MembershipFeatureUsagePage() {
                       </td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <span className="text-slate-200 font-semibold">{f.platinum.used}</span>
+                          <span className="text-slate-900 font-semibold">{f.platinum.used}</span>
                           <span className="text-slate-500">/ {f.platinum.total}</span>
                         </div>
                         <div className="vita-progress mt-1.5 w-20 mx-auto">
@@ -80,7 +80,7 @@ export default function MembershipFeatureUsagePage() {
                         </div>
                       </td>
                       <td>
-                        <span className={`text-sm font-bold ${goldPct >= 70 ? "text-emerald-400" : goldPct >= 40 ? "text-amber-400" : "text-red-400"}`}>{goldPct}%</span>
+                        <span className={`text-sm font-bold ${goldPct >= 70 ? "text-emerald-700" : goldPct >= 40 ? "text-amber-700" : "text-red-700"}`}>{goldPct}%</span>
                         <div className="text-xs text-slate-500">Gold utilization</div>
                       </td>
                     </tr>

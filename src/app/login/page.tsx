@@ -24,41 +24,41 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
       {/* Animated background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-800/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-red-100 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-emerald-100 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-50 rounded-full blur-3xl" />
       </div>
 
       {/* Grid pattern */}
-      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #1f2d45 1px, transparent 0)", backgroundSize: "40px 40px" }} />
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #e2e8f0 1px, transparent 0)", backgroundSize: "40px 40px" }} />
 
-      <div className="relative w-full max-w-md mx-4 animate-fade-in-up">
+      <div className="relative w-full max-w-md mx-auto animate-fade-in-up">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-2xl shadow-xl shadow-blue-900/40 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-600 to-red-500 rounded-2xl shadow-xl shadow-red-900/20 mb-4">
             <HeartPulse className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">VitaAdmin</h1>
-          <p className="text-slate-400 mt-1.5 text-sm">Healthcare Platform Management Console</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">VitaAdmin</h1>
+          <p className="text-slate-500 mt-1.5 text-sm">Healthcare Platform Management Console</p>
         </div>
 
         {/* Card */}
-        <div className="glass-card p-8 glow-blue">
+        <div className="glass-card p-6 sm:p-8 glow-red">
           {/* Role Selector */}
-          <div className="flex rounded-xl bg-[#080d1a] p-1 mb-6 border border-[#1f2d45]">
+          <div className="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
             <button
               onClick={() => setRole("admin")}
-              className={cn("flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200", role === "admin" ? "bg-blue-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300")}
+              className={cn("flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200", role === "admin" ? "bg-red-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-700")}
             >
               <Shield className="w-4 h-4" />
               Admin
             </button>
             <button
               onClick={() => setRole("super-admin")}
-              className={cn("flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200", role === "super-admin" ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300")}
+              className={cn("flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200", role === "super-admin" ? "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-700")}
             >
               <Sparkles className="w-4 h-4" />
               Super Admin
@@ -67,7 +67,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Email Address</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Email Address</label>
               <input
                 type="email"
                 value={email}
@@ -79,7 +79,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Password</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Password</label>
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
@@ -89,22 +89,22 @@ export default function LoginPage() {
                   className="vita-input pr-10"
                   autoComplete="current-password"
                 />
-                <button type="button" onClick={() => setShowPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                <button type="button" onClick={() => setShowPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
             )}
 
             <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 text-slate-400 cursor-pointer">
-                <input type="checkbox" className="accent-blue-500" />
+              <label className="flex items-center gap-2 text-slate-500 cursor-pointer">
+                <input type="checkbox" className="accent-red-600" />
                 Remember me
               </label>
-              <button type="button" className="text-blue-400 hover:text-blue-300 transition-colors">Forgot password?</button>
+              <button type="button" className="text-red-600 hover:text-red-700 transition-colors">Forgot password?</button>
             </div>
 
             <button
@@ -113,8 +113,8 @@ export default function LoginPage() {
               className={cn(
                 "w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-lg",
                 role === "super-admin"
-                  ? "bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white shadow-blue-900/30"
-                  : "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/30",
+                  ? "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-red-900/20"
+                  : "bg-red-600 hover:bg-red-500 text-white shadow-red-900/20",
                 loading && "opacity-70 cursor-not-allowed"
               )}
             >
@@ -129,13 +129,13 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-slate-600 mt-6">
+          <p className="text-center text-xs text-slate-400 mt-6">
             Vita Healthcare Platform &copy; {new Date().getFullYear()} · Secure Admin Console
           </p>
         </div>
 
         {/* Demo hint */}
-        <p className="text-center text-xs text-slate-600 mt-4">
+        <p className="text-center text-xs text-slate-400 mt-4">
           Demo: Enter any email and password to continue
         </p>
       </div>

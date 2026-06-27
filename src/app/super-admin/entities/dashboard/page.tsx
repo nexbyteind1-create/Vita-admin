@@ -23,12 +23,12 @@ export default function EntityDashboardPage() {
   return (
     <div className="min-h-screen">
       <TopHeader title="Entity Management Dashboard" subtitle="Platform-wide entity overview and quick access" role="super-admin" />
-      <div className="p-6 space-y-6 max-w-[1600px]">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
         {/* Entity Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {entitySummary.map(e => (
             <Link key={e.label} href={e.href}>
-              <StatCard label={e.label} value={e.value} icon={e.icon} color={e.color} className="hover:border-blue-500/40 transition-all" />
+              <StatCard label={e.label} value={e.value} icon={e.icon} color={e.color} className="hover:border-red-300 transition-all" />
             </Link>
           ))}
         </div>
@@ -39,23 +39,23 @@ export default function EntityDashboardPage() {
             <Link key={e.label} href={e.href}>
               <div className="glass-card p-5 cursor-pointer hover:-translate-y-0.5 transition-transform">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400 w-9 h-9">{e.icon}</div>
+                  <div className="p-2 bg-red-50 rounded-lg text-red-600 w-9 h-9">{e.icon}</div>
                   <div>
-                    <div className="text-sm font-bold text-white">{e.label}</div>
+                    <div className="text-sm font-bold text-slate-900">{e.label}</div>
                     <div className="text-xs text-slate-500">Total: {e.value}</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <div className="text-lg font-bold text-emerald-400">{e.active}</div>
+                    <div className="text-lg font-bold text-emerald-600">{e.active}</div>
                     <div className="text-xs text-slate-500 flex items-center justify-center gap-1"><CheckCircle className="w-3 h-3" />Active</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-amber-400">{e.suspended}</div>
+                    <div className="text-lg font-bold text-amber-600">{e.suspended}</div>
                     <div className="text-xs text-slate-500 flex items-center justify-center gap-1"><Pause className="w-3 h-3" />Suspended</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-red-400">{e.blocked}</div>
+                    <div className="text-lg font-bold text-red-600">{e.blocked}</div>
                     <div className="text-xs text-slate-500 flex items-center justify-center gap-1"><Ban className="w-3 h-3" />Blocked</div>
                   </div>
                 </div>
@@ -74,7 +74,7 @@ export default function EntityDashboardPage() {
 
         {/* Recent Audit */}
         <section>
-          <h2 className="text-base font-bold text-white mb-4">Recent Entity Actions</h2>
+          <h2 className="text-base font-bold text-slate-900 mb-4">Recent Entity Actions</h2>
           <div className="glass-card px-6">
             {entityAuditLogs.map(log => (
               <AuditLogRow key={log.id} id={log.id} action={log.action} entity={log.entityName} previousStatus={log.previousStatus} updatedStatus={log.updatedStatus} modifiedBy={log.modifiedBy} modifiedAt={log.modifiedAt} remarks={log.remarks} />

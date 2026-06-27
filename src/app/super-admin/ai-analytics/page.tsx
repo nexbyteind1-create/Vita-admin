@@ -21,12 +21,12 @@ const iconMap: Record<string, React.ReactNode> = {
 
 function SummaryCards({ cards }: { cards: { label: string; value: string | number; icon: string }[] }) {
   return (
-    <div className={`grid gap-3 mt-3 ${cards.length <= 2 ? "grid-cols-2" : cards.length <= 4 ? "grid-cols-2" : "grid-cols-3"}`}>
+    <div className={`grid gap-3 mt-3 ${cards.length <= 2 ? "grid-cols-1 sm:grid-cols-2" : cards.length <= 4 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
       {cards.map(c => (
-        <div key={c.label} className="bg-[#0d1526] border border-[#1f2d45] rounded-xl p-3 flex items-center gap-3">
-          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">{iconMap[c.icon] ?? <BarChart2 className="w-4 h-4" />}</div>
+        <div key={c.label} className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-3">
+          <div className="p-2 bg-red-50 rounded-lg text-red-600">{iconMap[c.icon] ?? <BarChart2 className="w-4 h-4" />}</div>
           <div>
-            <div className="text-base font-bold text-white">{c.value}</div>
+            <div className="text-base font-bold text-slate-900">{c.value}</div>
             <div className="text-xs text-slate-500">{c.label}</div>
           </div>
         </div>
@@ -37,7 +37,7 @@ function SummaryCards({ cards }: { cards: { label: string; value: string | numbe
 
 function TableResult({ headers, rows }: { headers: string[]; rows: (string | number)[][] }) {
   return (
-    <div className="mt-3 overflow-x-auto rounded-xl border border-[#1f2d45]">
+    <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200">
       <table className="vita-table w-full">
         <thead><tr>{headers.map(h => <th key={h}>{h}</th>)}</tr></thead>
         <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{String(c)}</td>)}</tr>)}</tbody>
@@ -58,7 +58,7 @@ function MessageBubble({ message }: { message: AIMessage }) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end mb-4">
-        <div className="max-w-[70%] bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 text-sm">
+        <div className="max-w-[85%] sm:max-w-[70%] bg-red-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 text-sm">
           {message.content}
         </div>
       </div>
@@ -67,28 +67,28 @@ function MessageBubble({ message }: { message: AIMessage }) {
 
   return (
     <div className="flex items-start gap-3 mb-6">
-      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+      <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
         <Bot className="w-4 h-4 text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="bg-[#111827] border border-[#1f2d45] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[90%]">
-          <p className="text-sm text-slate-200">{message.content}</p>
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 max-w-full sm:max-w-[90%]">
+          <p className="text-sm text-slate-900">{message.content}</p>
           {message.summaryCards && <SummaryCards cards={message.summaryCards} />}
           {message.tableData && <TableResult {...message.tableData} />}
           {message.chartData && (
-            <div className="mt-3 bg-[#0d1526] rounded-xl p-4 border border-[#1f2d45]">
+            <div className="mt-3 bg-white rounded-xl p-4 border border-slate-200">
               <BarChartComponent data={message.chartData.data} title={message.chartData.title} color="#2563eb" height={200} />
             </div>
           )}
         </div>
         <div className="flex items-center gap-2 mt-1.5 ml-1">
-          <button onClick={handleCopy} className="text-slate-600 hover:text-slate-400 transition-colors">
-            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+          <button onClick={handleCopy} className="text-slate-400 hover:text-slate-600 transition-colors">
+            {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
           </button>
-          <button className="text-xs text-slate-600 hover:text-slate-400 transition-colors flex items-center gap-1">
+          <button className="text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
             <Download className="w-3 h-3" /> Export
           </button>
-          <span className="text-xs text-slate-600">{new Date(message.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+          <span className="text-xs text-slate-400">{new Date(message.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
         </div>
       </div>
     </div>
@@ -146,7 +146,7 @@ export default function AIAnalyticsPage() {
         role="super-admin"
         actions={
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-gradient-to-r from-blue-500/20 to-emerald-500/20 text-blue-300 rounded-full border border-blue-500/20 animate-pulse-glow">
+            <div className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-gradient-to-r from-red-50 to-emerald-50 text-red-700 rounded-full border border-red-200 animate-pulse-glow">
               <Sparkles className="w-3 h-3" /> AI Online
             </div>
             <Button variant="ghost" size="sm" icon={<RefreshCw className="w-4 h-4" />} onClick={clearChat}>Clear</Button>
@@ -154,15 +154,15 @@ export default function AIAnalyticsPage() {
         }
       />
 
-      <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 73px)" }}>
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden" style={{ height: "calc(100vh - 73px)" }}>
         {/* Suggested Questions Sidebar */}
-        <div className="w-64 border-r border-[#1f2d45] bg-[#0d1526]/80 flex-shrink-0 flex flex-col">
-          <div className="p-4 border-b border-[#1f2d45]">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Suggested Queries</p>
+        <div className="hidden lg:flex w-64 border-r border-slate-200 bg-slate-50/80 flex-shrink-0 flex-col">
+          <div className="p-4 border-b border-slate-200">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Suggested Queries</p>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
             {suggestedQuestions.map((q, i) => (
-              <button key={i} onClick={() => sendMessage(q)} className="w-full text-left text-xs text-slate-400 hover:text-slate-200 hover:bg-white/5 px-3 py-2.5 rounded-lg transition-colors border border-transparent hover:border-[#1f2d45] leading-relaxed">
+              <button key={i} onClick={() => sendMessage(q)} className="w-full text-left text-xs text-slate-500 hover:text-slate-900 hover:bg-slate-100 px-3 py-2.5 rounded-lg transition-colors border border-transparent hover:border-slate-200 leading-relaxed">
                 {q}
               </button>
             ))}
@@ -172,20 +172,20 @@ export default function AIAnalyticsPage() {
         {/* Chat Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="max-w-4xl mx-auto">
               {messages.map(msg => <MessageBubble key={msg.id} message={msg} />)}
 
               {loading && (
                 <div className="flex items-start gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Bot className="w-4 h-4 text-white" />
                   </div>
-                  <div className="bg-[#111827] border border-[#1f2d45] rounded-2xl rounded-tl-sm px-4 py-3">
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export default function AIAnalyticsPage() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-[#1f2d45] p-4 bg-[#0d1526]/80 backdrop-blur-sm">
+          <div className="border-t border-slate-200 p-4 bg-slate-50/80 backdrop-blur-sm">
             <div className="max-w-4xl mx-auto flex gap-3">
               <div className="relative flex-1">
                 <input
@@ -208,12 +208,12 @@ export default function AIAnalyticsPage() {
                   disabled={loading}
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Sparkles className="w-4 h-4 text-blue-400/50" />
+                  <Sparkles className="w-4 h-4 text-red-400/50" />
                 </div>
               </div>
               <Button onClick={() => sendMessage(input)} loading={loading} icon={<Send className="w-4 h-4" />} className="px-5 py-3">Send</Button>
             </div>
-            <p className="text-center text-xs text-slate-600 mt-2">AI responses are based on mock platform data for demonstration purposes.</p>
+            <p className="text-center text-xs text-slate-400 mt-2">AI responses are based on mock platform data for demonstration purposes.</p>
           </div>
         </div>
       </div>

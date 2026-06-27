@@ -17,12 +17,12 @@ import { Building2, CheckCircle, XCircle, Pause, Play, Ban, Eye, Users, Stethosc
 const columns: Column<Hospital>[] = [
   { key: "name", header: "Hospital", sortable: true, render: h => (
     <div>
-      <div className="text-sm font-semibold text-slate-200">{h.name}</div>
+      <div className="text-sm font-semibold text-slate-900">{h.name}</div>
       <div className="text-xs text-slate-500">{h.registrationId}</div>
     </div>
   )},
-  { key: "city", header: "Location", render: h => <span className="text-slate-400 text-sm">{h.city}, {h.state}</span> },
-  { key: "totalDoctors", header: "Doctors", align: "center", render: h => <span className="font-semibold text-slate-200">{h.totalDoctors}</span> },
+  { key: "city", header: "Location", render: h => <span className="text-slate-500 text-sm">{h.city}, {h.state}</span> },
+  { key: "totalDoctors", header: "Doctors", align: "center", render: h => <span className="font-semibold text-slate-900">{h.totalDoctors}</span> },
   { key: "totalAppointments", header: "Appointments", align: "right", render: h => <span className="font-semibold">{formatNumber(h.totalAppointments)}</span> },
   { key: "approvalStatus", header: "Approval", render: h => <Badge variant={h.approvalStatus as "approved" | "pending" | "rejected"} label={h.approvalStatus} /> },
   { key: "status", header: "Status", render: h => <Badge variant={h.status} /> },
@@ -83,8 +83,8 @@ export default function EntityHospitalsPage() {
           </div>
         }
       />
-      <div className="p-6 space-y-6 max-w-[1600px]">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard label="Total Hospitals" value={hospitalList.length} icon={<Building2 className="w-full h-full" />} color="blue" />
           <StatCard label="Active" value={hospitalList.filter(h => h.status === "active").length} icon={<CheckCircle className="w-full h-full" />} color="emerald" />
           <StatCard label="Pending Approval" value={hospitalList.filter(h => h.approvalStatus === "pending").length} icon={<Pause className="w-full h-full" />} color="amber" />
@@ -118,15 +118,15 @@ export default function EntityHospitalsPage() {
           {selected && (
             <div className="space-y-4">
               <div className="grid grid-cols-3 gap-3">
-                <div className="glass-card p-4 text-center"><div className="text-xl font-bold text-white">{selected.totalDoctors}</div><div className="text-xs text-slate-500 mt-1">Doctors</div></div>
-                <div className="glass-card p-4 text-center"><div className="text-xl font-bold text-white">{formatNumber(selected.totalPatients)}</div><div className="text-xs text-slate-500 mt-1">Patients</div></div>
-                <div className="glass-card p-4 text-center"><div className="text-xl font-bold text-white">{formatNumber(selected.totalAppointments)}</div><div className="text-xs text-slate-500 mt-1">Appointments</div></div>
+                <div className="glass-card p-4 text-center"><div className="text-xl font-bold text-slate-900">{selected.totalDoctors}</div><div className="text-xs text-slate-500 mt-1">Doctors</div></div>
+                <div className="glass-card p-4 text-center"><div className="text-xl font-bold text-slate-900">{formatNumber(selected.totalPatients)}</div><div className="text-xs text-slate-500 mt-1">Patients</div></div>
+                <div className="glass-card p-4 text-center"><div className="text-xl font-bold text-slate-900">{formatNumber(selected.totalAppointments)}</div><div className="text-xs text-slate-500 mt-1">Appointments</div></div>
               </div>
               {[["Location", `${selected.city}, ${selected.state}`], ["Status", selected.status], ["Approval", selected.approvalStatus], ["Registered", formatDate(selected.createdAt)]].map(([l, v]) => (
-                <div key={l} className="flex justify-between py-2 border-b border-[#1f2d45] text-sm"><span className="text-slate-500">{l}</span><span className="font-medium text-slate-200">{v}</span></div>
+                <div key={l} className="flex justify-between py-2 border-b border-slate-200 text-sm"><span className="text-slate-500">{l}</span><span className="font-medium text-slate-900">{v}</span></div>
               ))}
               {selected.status === "active" && (
-                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-300">
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
                   ⚠️ Blocking this hospital will automatically disable appointment booking, doctor availability, patient registrations, and hospital login.
                 </div>
               )}
@@ -135,7 +135,7 @@ export default function EntityHospitalsPage() {
         </Modal>
 
         <Modal open={!!actionModal} onClose={() => setActionModal(null)} title={`Confirm: ${actionModal?.action} Hospital`} size="sm">
-          <p className="text-slate-300 text-sm mb-4">
+          <p className="text-slate-600 text-sm mb-4">
             Are you sure you want to <strong>{actionModal?.action}</strong> <strong>{actionModal?.entity.name}</strong>?
             {actionModal?.action === "block" && " This will prevent appointment booking, doctor availability, and patient registrations."}
           </p>
@@ -158,7 +158,7 @@ export default function EntityHospitalsPage() {
               <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">Registration / License ID</label>
               <input value={newHospital.registrationId} onChange={e => setNewHospital(h => ({ ...h, registrationId: e.target.value }))} className="vita-input" placeholder="REG-AP-2026-092" required />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase mb-2 block">City</label>
                 <input value={newHospital.city} onChange={e => setNewHospital(h => ({ ...h, city: e.target.value }))} className="vita-input" placeholder="Hyderabad" />
@@ -168,7 +168,7 @@ export default function EntityHospitalsPage() {
                 <input value={newHospital.state} onChange={e => setNewHospital(h => ({ ...h, state: e.target.value }))} className="vita-input" placeholder="Telangana" />
               </div>
             </div>
-            <div className="flex gap-2 pt-4 border-t border-[#1f2d45]">
+            <div className="flex gap-2 pt-4 border-t border-slate-200">
               <Button type="submit" className="flex-1">Register Hospital</Button>
               <Button type="button" variant="secondary" onClick={() => setCreateModal(false)}>Cancel</Button>
             </div>

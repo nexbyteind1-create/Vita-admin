@@ -9,26 +9,26 @@ import type { MembershipFeature } from "@/lib/types/membership";
 import { Save, RotateCcw, Info } from "lucide-react";
 
 const categoryColors: Record<string, string> = {
-  Appointments: "text-blue-400",
-  Discounts: "text-emerald-400",
-  Financial: "text-amber-400",
-  Insurance: "text-purple-400",
-  Digital: "text-cyan-400",
-  Emergency: "text-red-400",
-  Checkups: "text-pink-400",
-  Rewards: "text-orange-400",
+  Appointments: "text-red-600",
+  Discounts: "text-emerald-600",
+  Financial: "text-amber-600",
+  Insurance: "text-purple-600",
+  Digital: "text-cyan-600",
+  Emergency: "text-red-600",
+  Checkups: "text-pink-600",
+  Rewards: "text-orange-600",
 };
 
 function FeatureRow({ feature, onChange }: { feature: MembershipFeature; onChange: (f: MembershipFeature) => void }) {
   return (
-    <div className={`grid grid-cols-12 gap-3 items-center py-4 px-4 border-b border-[#1f2d45] last:border-0 hover:bg-white/[0.02] transition-colors ${!feature.enabled ? "opacity-60" : ""}`}>
+    <div className={`grid grid-cols-12 gap-3 items-center py-4 px-4 min-w-[640px] border-b border-slate-200 last:border-0 hover:bg-slate-100 transition-colors ${!feature.enabled ? "opacity-60" : ""}`}>
       {/* Enable toggle */}
       <div className="col-span-1 flex justify-center">
         <ToggleSwitch enabled={feature.enabled} onChange={v => onChange({ ...feature, enabled: v })} size="sm" />
       </div>
       {/* Feature name */}
       <div className="col-span-4">
-        <div className="text-sm font-medium text-slate-200">{feature.name}</div>
+        <div className="text-sm font-medium text-slate-900">{feature.name}</div>
         <div className={`text-xs ${categoryColors[feature.category] ?? "text-slate-500"}`}>{feature.category}</div>
       </div>
       {/* Limit */}
@@ -88,35 +88,35 @@ export default function ConfigurePlanPage() {
         }
       />
 
-      <div className="p-6 space-y-6 max-w-[1200px]">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1200px]">
         {/* Summary */}
         <div className="glass-card p-4 flex items-center gap-6 flex-wrap">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-500">Plan:</span>
-            <span className="font-bold text-white">{plan.name}</span>
+            <span className="font-bold text-slate-900">{plan.name}</span>
           </div>
-          <div className="w-px h-4 bg-[#1f2d45]" />
+          <div className="w-px h-4 bg-slate-200" />
           <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-500">Current Version:</span>
-            <span className="font-semibold text-blue-400">v{plan.currentVersion}</span>
+            <span className="font-semibold text-red-600">v{plan.currentVersion}</span>
           </div>
-          <div className="w-px h-4 bg-[#1f2d45]" />
+          <div className="w-px h-4 bg-slate-200" />
           <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-500">Enabled Features:</span>
-            <span className="font-bold text-emerald-400">{enabledCount}</span>
+            <span className="font-bold text-emerald-600">{enabledCount}</span>
             <span className="text-slate-500">/ {features.length}</span>
           </div>
           <div className="flex-1" />
-          <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+          <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
             Saving will create v{plan.currentVersion + 1}. Existing subscribers keep v{plan.currentVersion} until renewal.
           </div>
         </div>
 
         {/* Feature Table */}
-        <div className="glass-card overflow-hidden">
+        <div className="glass-card overflow-x-auto">
           {/* Header */}
-          <div className="grid grid-cols-12 gap-3 px-4 py-3 bg-[#080d1a] border-b border-[#1f2d45] text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <div className="grid grid-cols-12 gap-3 px-4 py-3 min-w-[640px] bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
             <div className="col-span-1 text-center">On/Off</div>
             <div className="col-span-4">Feature</div>
             <div className="col-span-2">Limit</div>
@@ -128,7 +128,7 @@ export default function ConfigurePlanPage() {
           {/* Grouped by category */}
           {categories.map(cat => (
             <div key={cat}>
-              <div className={`px-4 py-2 text-xs font-bold uppercase tracking-widest ${categoryColors[cat] ?? "text-slate-500"} bg-white/[0.02] border-b border-[#1f2d45]`}>
+              <div className={`px-4 py-2 text-xs font-bold uppercase tracking-widest min-w-[640px] ${categoryColors[cat] ?? "text-slate-500"} bg-slate-50 border-b border-slate-200`}>
                 {cat}
               </div>
               {features.filter(f => f.category === cat).map(f => (
@@ -139,9 +139,9 @@ export default function ConfigurePlanPage() {
         </div>
 
         {/* Versioning Note */}
-        <div className="glass-card p-5 border border-blue-500/20 bg-blue-500/5">
-          <h3 className="text-sm font-semibold text-blue-300 mb-3">📋 Membership Versioning Policy</h3>
-          <div className="space-y-1.5 text-xs text-slate-400">
+        <div className="glass-card p-5 border border-red-200 bg-red-50">
+          <h3 className="text-sm font-semibold text-red-700 mb-3">📋 Membership Versioning Policy</h3>
+          <div className="space-y-1.5 text-xs text-slate-500">
             <p>• When you save changes, a new plan version is automatically created (v{plan.currentVersion} → v{plan.currentVersion + 1})</p>
             <p>• Existing members on v{plan.currentVersion} continue receiving the old configuration until their membership expires or they renew</p>
             <p>• New subscriptions and renewals will receive v{plan.currentVersion + 1}</p>
