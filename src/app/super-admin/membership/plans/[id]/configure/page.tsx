@@ -5,8 +5,10 @@ import { TopHeader } from "@/components/layout/TopHeader";
 import { Button } from "@/components/ui/Button";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { membershipPlans } from "@/lib/mock-data/membership";
+import { hospitalDiscountConfigs } from "@/lib/mock-data/hospital-discounts";
 import type { MembershipFeature } from "@/lib/types/membership";
 import { Save, RotateCcw, Info } from "lucide-react";
+import Link from "next/link";
 
 const categoryColors: Record<string, string> = {
   Appointments: "text-red-600",
@@ -136,6 +138,32 @@ export default function ConfigurePlanPage() {
               ))}
             </div>
           ))}
+        </div>
+
+        {/* Hospital-Specific Overrides */}
+        <div className="glass-card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-slate-700">Hospital-Specific Discount Overrides</h3>
+            <Link href="/super-admin/membership/hospital-discounts"><Button variant="ghost" size="xs">View All</Button></Link>
+          </div>
+          <p className="text-xs text-slate-500 mb-3">These hospitals honor different discount percentages than the plan defaults above. Everything else in the plan applies to them as normal.</p>
+          {hospitalDiscountConfigs.filter(c => c.planId === plan.id).length === 0 ? (
+            <p className="text-xs text-slate-400 italic">No hospital-specific overrides configured for this plan yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {hospitalDiscountConfigs.filter(c => c.planId === plan.id).map(c => (
+                <div key={c.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 text-sm">
+                  <div>
+                    <span className="font-medium text-slate-900">{c.hospitalName}</span>
+                    <span className="text-xs text-slate-500 ml-2">v{c.currentVersion} · {c.overrides.map(o => `${o.name.replace(" Discounts", "")} ${o.percentage}%`).join(", ")}</span>
+                  </div>
+                  <Link href={`/super-admin/membership/hospital-discounts/${c.hospitalId}?planId=${c.planId}`}>
+                    <Button variant="ghost" size="xs">Edit</Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Versioning Note */}

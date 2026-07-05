@@ -67,6 +67,34 @@ export interface RenewalRecord {
   expiryDate: string;
 }
 
+export interface HospitalDiscountOverride {
+  featureId: string;
+  name: string;
+  category: string;
+  percentage: number;
+}
+
+export interface HospitalDiscountConfigVersion {
+  version: number;
+  overrides: HospitalDiscountOverride[];
+  changes: string;
+  modifiedBy: string;
+  modifiedAt: string;
+}
+
+export interface HospitalDiscountConfig {
+  id: string;
+  hospitalId: string;
+  hospitalName: string;
+  planId: string;
+  planName: string;
+  currentVersion: number;
+  overrides: HospitalDiscountOverride[];
+  versions: HospitalDiscountConfigVersion[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface MembershipRule {
   autoRenewal: boolean;
   renewalGracePeriodDays: number;

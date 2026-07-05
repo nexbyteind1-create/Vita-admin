@@ -1,4 +1,4 @@
-import type { WalletConfig, WalletAnalytics, UserWallet, WalletAuditLog, CashbackRule, UtilizationPolicy } from "@/lib/types/wallet";
+import type { WalletConfig, WalletAnalytics, UserWallet, WalletAuditLog, CashbackRule, UtilizationPolicy, ReferralRewardConfig } from "@/lib/types/wallet";
 
 export const walletConfig: WalletConfig = {
   moduleEnabled: true,
@@ -30,6 +30,14 @@ export const walletAnalytics: WalletAnalytics = {
   totalCreditsExpired: 4240000,
   totalWalletUsers: 198420,
   averageCreditsPerUser: 143,
+};
+
+export const referralRewardConfig: ReferralRewardConfig = {
+  referrerCredits: 200,
+  newUserCredits: 100,
+  maxReferralRewards: 10,
+  campaignDuration: 90,
+  enabled: true,
 };
 
 export const cashbackRules: CashbackRule[] = [

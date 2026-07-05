@@ -3,14 +3,15 @@ import { useState } from "react";
 import { TopHeader } from "@/components/layout/TopHeader";
 import { Button } from "@/components/ui/Button";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
-import { walletConfig, cashbackRules } from "@/lib/mock-data/wallet";
-import type { WalletConfig } from "@/lib/types/wallet";
-import { Save, Info, Wallet, Percent, Calendar, CreditCard } from "lucide-react";
+import { walletConfig, cashbackRules, referralRewardConfig } from "@/lib/mock-data/wallet";
+import type { WalletConfig, ReferralRewardConfig } from "@/lib/types/wallet";
+import { Save, Info, Wallet, Percent, Calendar, CreditCard, Gift } from "lucide-react";
 import { formatDate } from "@/lib/utils/format";
 
 // Trigger new build
 export default function WalletConfigurationPage() {
   const [config, setConfig] = useState<WalletConfig>(walletConfig);
+  const [referralConfig, setReferralConfig] = useState<ReferralRewardConfig>(referralRewardConfig);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -77,6 +78,33 @@ export default function WalletConfigurationPage() {
               <ToggleSwitch enabled={src.enabled} onChange={v => setConfig(c => ({ ...c, creditSources: c.creditSources.map((s, j) => i === j ? { ...s, enabled: v } : s) }))} size="sm" />
             </div>
           ))}
+        </div>
+
+        {/* Referral Rewards */}
+        <div className={`glass-card p-6 space-y-4 ${!config.moduleEnabled ? "opacity-50 pointer-events-none" : ""}`}>
+          <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2"><Gift className="w-4 h-4 text-pink-600" /> Referral Reward Configuration</h3>
+          <ToggleSwitch enabled={referralConfig.enabled} onChange={v => setReferralConfig(c => ({ ...c, enabled: v }))} label="Enable Referral Rewards" description="If disabled, referring users will not earn credits for new sign-ups" />
+          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${!referralConfig.enabled ? "opacity-50 pointer-events-none" : ""}`}>
+            {[
+              { label: "Referrer Credits", key: "referrerCredits" as const },
+              { label: "New User Credits", key: "newUserCredits" as const },
+              { label: "Max Referral Rewards / User", key: "maxReferralRewards" as const },
+              { label: "Campaign Duration (days)", key: "campaignDuration" as const },
+            ].map(field => (
+              <div key={field.key}>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">{field.label}</label>
+                <input
+                  type="number"
+                  value={referralConfig[field.key]}
+                  onChange={e => setReferralConfig(c => ({ ...c, [field.key]: Number(e.target.value) }))}
+                  className="vita-input"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="p-3 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
+            💡 A user who refers a friend earns {referralConfig.referrerCredits} Credits, and the new user starts with {referralConfig.newUserCredits} Credits — up to {referralConfig.maxReferralRewards} referrals per user.
+          </div>
         </div>
 
         {/* Credit Expiry */}

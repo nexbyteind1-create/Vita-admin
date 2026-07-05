@@ -1,7 +1,7 @@
 "use client";
 import { TopHeader } from "@/components/layout/TopHeader";
 import { ExportMenu } from "@/components/ui/ExportMenu";
-import { Wallet, TrendingUp, Users, BarChart2, RefreshCw } from "lucide-react";
+import { Wallet, TrendingUp, Users, BarChart2, RefreshCw, Percent } from "lucide-react";
 
 const reports = [
   { title: "Credit Issuance Report", icon: Wallet, desc: "Total credits issued by source, period, and user segment", color: "blue" },
@@ -9,6 +9,7 @@ const reports = [
   { title: "Credit Expiry Report", icon: RefreshCw, desc: "Credits expiring in the next 30/60/90 days", color: "amber" },
   { title: "Top Earners Report", icon: Users, desc: "Top users by credits earned in a given period", color: "purple" },
   { title: "Credit Source Report", icon: BarChart2, desc: "Credits earned by source (bill upload, lab, membership, etc.)", color: "cyan" },
+  { title: "Credit Utilization Report", icon: Percent, desc: "Redeemed and expired credits as a percentage of total earned, across all users", color: "red" },
 ];
 
 const colorMap: Record<string, string> = {
@@ -17,6 +18,7 @@ const colorMap: Record<string, string> = {
   amber: "text-amber-700 bg-amber-50 border-amber-200",
   purple: "text-purple-700 bg-purple-50 border-purple-200",
   cyan: "text-cyan-700 bg-cyan-50 border-cyan-200",
+  red: "text-red-700 bg-red-50 border-red-200",
 };
 
 export default function WalletReportsPage() {

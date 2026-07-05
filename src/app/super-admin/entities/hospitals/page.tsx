@@ -12,7 +12,8 @@ import { hospitals } from "@/lib/mock-data/entities";
 import { formatDate, formatNumber } from "@/lib/utils/format";
 import type { Hospital } from "@/lib/types/entity";
 import type { Column } from "@/components/ui/DataTable";
-import { Building2, CheckCircle, XCircle, Pause, Play, Ban, Eye, Users, Stethoscope, Calendar } from "lucide-react";
+import { Building2, CheckCircle, XCircle, Pause, Play, Ban, Eye, Users, Stethoscope, Calendar, Percent } from "lucide-react";
+import Link from "next/link";
 
 const columns: Column<Hospital>[] = [
   { key: "name", header: "Hospital", sortable: true, render: h => (
@@ -98,6 +99,9 @@ export default function EntityHospitalsPage() {
             key: "id", header: "Actions", render: h => (
               <div className="flex items-center gap-1.5 flex-wrap">
                 <Button size="xs" variant="ghost" icon={<Eye className="w-3 h-3" />} onClick={() => setSelected(h)}>View</Button>
+                <Link href={`/super-admin/membership/hospital-discounts/${h.id}`}>
+                  <Button size="xs" variant="ghost" icon={<Percent className="w-3 h-3" />}>Discounts</Button>
+                </Link>
                 {h.approvalStatus === "pending" && <>
                   <Button size="xs" variant="success" onClick={() => setActionModal({ action: "approve", entity: h })}>Approve</Button>
                   <Button size="xs" variant="danger" onClick={() => setActionModal({ action: "reject", entity: h })}>Reject</Button>

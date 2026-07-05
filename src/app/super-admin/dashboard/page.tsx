@@ -12,10 +12,11 @@ import {
   dashboardMetrics, userGrowthData, appointmentTrendData, membershipGrowthData,
   hospitalAppointmentsData, financialTrendData, membershipDistribution, topHospitals
 } from "@/lib/mock-data/dashboard";
+import { walletAnalytics } from "@/lib/mock-data/wallet";
 import {
   Users, Building2, Stethoscope, FlaskConical, Scan, Store, ShieldCheck,
   Activity, FileText, TrendingUp, Wallet, AlertCircle, Headphones,
-  UserPlus, Calendar, Heart, BarChart2, Clock, Target, Zap
+  UserPlus, Calendar, Heart, BarChart2, Clock, Target, Zap, RefreshCw
 } from "lucide-react";
 
 const sectionTitle = (title: string, subtitle?: string) => (
@@ -187,6 +188,20 @@ export default function SuperAdminDashboard() {
               { label: "Lab Billing", value: formatCurrency(m.labBilling), icon: <FlaskConical className="w-full h-full" />, color: "purple" as const },
               { label: "Diagnostic Billing", value: formatCurrency(m.diagnosticBilling), icon: <Scan className="w-full h-full" />, color: "cyan" as const },
               { label: "Avg Spend/Patient", value: formatCurrency(m.avgSpendPerPatient), icon: <TrendingUp className="w-full h-full" />, color: "amber" as const },
+            ].map((card, i) => <StatCard key={i} {...card} />)}
+          </div>
+        </section>
+
+        {/* ── Wallet & Credits ── */}
+        <section>
+          {sectionTitle("Wallet & Credits", "Credits issued, earned, redeemed and expired across the platform")}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[
+              { label: "Total Credits Issued", value: formatNumber(walletAnalytics.totalCreditsIssued), icon: <Wallet className="w-full h-full" />, color: "blue" as const },
+              { label: "Total Credits Earned", value: formatNumber(walletAnalytics.totalCreditsEarned), icon: <TrendingUp className="w-full h-full" />, color: "emerald" as const },
+              { label: "Total Credits Redeemed", value: formatNumber(walletAnalytics.totalCreditsRedeemed), icon: <RefreshCw className="w-full h-full" />, color: "purple" as const },
+              { label: "Total Credits Expired", value: formatNumber(walletAnalytics.totalCreditsExpired), icon: <AlertCircle className="w-full h-full" />, color: "red" as const },
+              { label: "Avg Credits / User", value: formatNumber(walletAnalytics.averageCreditsPerUser), icon: <Users className="w-full h-full" />, color: "cyan" as const },
             ].map((card, i) => <StatCard key={i} {...card} />)}
           </div>
         </section>

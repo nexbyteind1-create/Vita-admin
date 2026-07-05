@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
     label: "Membership", icon: <ShieldCheck className="w-4 h-4" />,
     children: [
       { label: "Plans", href: "/super-admin/membership/plans" },
+      { label: "Hospital Discounts", href: "/super-admin/membership/hospital-discounts" },
       { label: "Analytics", href: "/super-admin/membership/analytics" },
       { label: "User Memberships", href: "/super-admin/membership/users" },
       { label: "Rules & Config", href: "/super-admin/membership/rules" },
