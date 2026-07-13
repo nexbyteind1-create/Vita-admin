@@ -8,11 +8,44 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ExportMenu } from "@/components/ui/ExportMenu";
+import { BulkUploadModal, type BulkUploadColumn } from "@/components/ui/BulkUploadModal";
 import { doctors } from "@/lib/mock-data/entities";
 import { formatDate, formatNumber } from "@/lib/utils/format";
 import type { Doctor } from "@/lib/types/entity";
 import type { Column } from "@/components/ui/DataTable";
-import { Stethoscope, CheckCircle, XCircle, Eye, Star } from "lucide-react";
+import { Stethoscope, CheckCircle, XCircle, Eye, Star, Upload } from "lucide-react";
+
+const bulkUploadColumns: BulkUploadColumn[] = [
+  { key: "name", header: "Doctor Name", required: true, example: "Dr. Arun Mehta" },
+  { key: "licenseNumber", header: "License Number", required: true, example: "LIC-TG-2026-9481" },
+  { key: "specialty", header: "Specialty", required: true, example: "Cardiology" },
+  { key: "hospital", header: "Hospital Partner", example: "Apollo Hospitals" },
+];
+
+function parseDoctorRow(raw: Record<string, string>, rowIndex: number): { data: Doctor } | { error: string } {
+  const name = raw.name?.trim();
+  const licenseNumber = raw.licenseNumber?.trim();
+  const specialty = raw.specialty?.trim();
+  if (!name) return { error: "Doctor Name is required." };
+  if (!licenseNumber) return { error: "License Number is required." };
+  if (!specialty) return { error: "Specialty is required." };
+
+  return {
+    data: {
+      id: `d-${Date.now()}-${rowIndex}`,
+      name,
+      licenseNumber,
+      specialty,
+      hospital: raw.hospital?.trim() || "Apollo Hospitals",
+      hospitalId: "",
+      status: "active",
+      totalAppointments: 0,
+      rating: 5.0,
+      verificationStatus: "verified",
+      createdAt: new Date().toISOString().split("T")[0],
+    },
+  };
+}
 
 const columns: Column<Doctor>[] = [
   { key: "name", header: "Doctor", sortable: true, render: d => (
@@ -32,6 +65,7 @@ export default function EntityDoctorsPage() {
   const [selected, setSelected] = useState<Doctor | null>(null);
   const [actionModal, setActionModal] = useState<{ action: string; entity: Doctor } | null>(null);
   const [createModal, setCreateModal] = useState(false);
+  const [bulkModal, setBulkModal] = useState(false);
   const [newDoctor, setNewDoctor] = useState({
     name: "",
     licenseNumber: "",
@@ -77,6 +111,7 @@ export default function EntityDoctorsPage() {
         actions={
           <div className="flex items-center gap-2">
             <ExportMenu reportName="Doctors Report" />
+            <Button variant="secondary" icon={<Upload className="w-4 h-4" />} onClick={() => setBulkModal(true)}>Bulk Upload</Button>
             <Button onClick={() => setCreateModal(true)}>Add Doctor</Button>
           </div>
         }
@@ -145,6 +180,17 @@ export default function EntityDoctorsPage() {
             </div>
           </form>
         </Modal>
+
+        <BulkUploadModal<Doctor>
+          open={bulkModal}
+          onClose={() => setBulkModal(false)}
+          title="Bulk Upload Doctors"
+          subtitle="Register multiple doctors at once via Excel"
+          templateColumns={bulkUploadColumns}
+          templateFileName="doctors-template.xlsx"
+          parseRow={parseDoctorRow}
+          onConfirm={rows => setDoctorList(prev => [...rows, ...prev])}
+        />
       </div>
     </div>
   );

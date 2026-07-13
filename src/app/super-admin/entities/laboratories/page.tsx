@@ -8,11 +8,41 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ExportMenu } from "@/components/ui/ExportMenu";
+import { BulkUploadModal, type BulkUploadColumn } from "@/components/ui/BulkUploadModal";
 import { laboratories } from "@/lib/mock-data/entities";
 import { formatDate, formatNumber } from "@/lib/utils/format";
 import type { Laboratory } from "@/lib/types/entity";
 import type { Column } from "@/components/ui/DataTable";
-import { FlaskConical, CheckCircle, XCircle, Eye, AlertCircle } from "lucide-react";
+import { FlaskConical, CheckCircle, XCircle, Eye, AlertCircle, Upload } from "lucide-react";
+
+const bulkUploadColumns: BulkUploadColumn[] = [
+  { key: "name", header: "Lab Name", required: true, example: "SRL Diagnostics" },
+  { key: "licenseNumber", header: "License Number", required: true, example: "LAB-TG-2026-8421" },
+  { key: "city", header: "City", example: "Hyderabad" },
+  { key: "state", header: "State", example: "Telangana" },
+];
+
+function parseLabRow(raw: Record<string, string>, rowIndex: number): { data: Laboratory } | { error: string } {
+  const name = raw.name?.trim();
+  const licenseNumber = raw.licenseNumber?.trim();
+  if (!name) return { error: "Lab Name is required." };
+  if (!licenseNumber) return { error: "License Number is required." };
+
+  return {
+    data: {
+      id: `l-${Date.now()}-${rowIndex}`,
+      name,
+      licenseNumber,
+      city: raw.city?.trim() || "Hyderabad",
+      state: raw.state?.trim() || "Telangana",
+      status: "active",
+      totalBookings: 0,
+      pendingReports: 0,
+      approvalStatus: "approved",
+      createdAt: new Date().toISOString().split("T")[0],
+    },
+  };
+}
 
 const columns: Column<Laboratory>[] = [
   { key: "name", header: "Laboratory", sortable: true, render: l => <div><div className="text-sm font-semibold text-slate-900">{l.name}</div><div className="text-xs text-slate-500">{l.licenseNumber}</div></div> },
@@ -28,6 +58,7 @@ export default function EntityLaboratoriesPage() {
   const [labList, setLabList] = useState<Laboratory[]>(laboratories);
   const [selected, setSelected] = useState<Laboratory | null>(null);
   const [createModal, setCreateModal] = useState(false);
+  const [bulkModal, setBulkModal] = useState(false);
   const [newLab, setNewLab] = useState({
     name: "",
     licenseNumber: "",
@@ -72,6 +103,7 @@ export default function EntityLaboratoriesPage() {
         actions={
           <div className="flex items-center gap-2">
             <ExportMenu reportName="Laboratories Report" />
+            <Button variant="secondary" icon={<Upload className="w-4 h-4" />} onClick={() => setBulkModal(true)}>Bulk Upload</Button>
             <Button onClick={() => setCreateModal(true)}>Add Lab</Button>
           </div>
         }
@@ -129,6 +161,17 @@ export default function EntityLaboratoriesPage() {
             </div>
           </form>
         </Modal>
+
+        <BulkUploadModal<Laboratory>
+          open={bulkModal}
+          onClose={() => setBulkModal(false)}
+          title="Bulk Upload Laboratories"
+          subtitle="Register multiple laboratories at once via Excel"
+          templateColumns={bulkUploadColumns}
+          templateFileName="laboratories-template.xlsx"
+          parseRow={parseLabRow}
+          onConfirm={rows => setLabList(prev => [...rows, ...prev])}
+        />
       </div>
     </div>
   );

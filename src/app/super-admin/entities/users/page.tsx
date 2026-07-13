@@ -10,12 +10,57 @@ import { ExportMenu } from "@/components/ui/ExportMenu";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { AuditLogRow } from "@/components/ui/AuditLogRow";
+import { BulkUploadModal, type BulkUploadColumn } from "@/components/ui/BulkUploadModal";
 import { users } from "@/lib/mock-data/entities";
 import { entityAuditLogs } from "@/lib/mock-data/entities";
 import { formatDate, formatCurrency, formatNumber } from "@/lib/utils/format";
 import type { User } from "@/lib/types/entity";
 import type { Column } from "@/components/ui/DataTable";
-import { Users, Activity, UserX, UserCheck, ShieldOff, Wallet, Eye, CheckCircle, Ban, RotateCcw } from "lucide-react";
+import { Users, Activity, UserX, UserCheck, ShieldOff, Wallet, Eye, CheckCircle, Ban, RotateCcw, Upload } from "lucide-react";
+
+const bulkUploadColumns: BulkUploadColumn[] = [
+  { key: "name", header: "Full Name", required: true, example: "Lokesh Kumar" },
+  { key: "mobile", header: "Mobile Number", required: true, example: "9876543210" },
+  { key: "email", header: "Email", required: true, example: "lokesh@email.com" },
+  { key: "age", header: "Age", example: "30" },
+  { key: "gender", header: "Gender (male/female)", example: "male" },
+  { key: "city", header: "City", example: "Hyderabad" },
+  { key: "state", header: "State", example: "Telangana" },
+  { key: "membershipTier", header: "Membership Tier", example: "Gold" },
+];
+
+function parseUserRow(raw: Record<string, string>, rowIndex: number): { data: User } | { error: string } {
+  const name = raw.name?.trim();
+  const mobile = raw.mobile?.trim();
+  const email = raw.email?.trim();
+  if (!name) return { error: "Full Name is required." };
+  if (!mobile) return { error: "Mobile Number is required." };
+  if (!email) return { error: "Email is required." };
+
+  const genderRaw = raw.gender?.trim().toLowerCase();
+  const gender = genderRaw === "female" ? "female" : "male";
+  const age = Number(raw.age);
+
+  return {
+    data: {
+      id: `u-${Date.now()}-${rowIndex}`,
+      name,
+      uhid: `VITA${Math.floor(100000 + Math.random() * 900000)}`,
+      mobile,
+      email,
+      age: Number.isFinite(age) && age > 0 ? age : 30,
+      gender,
+      city: raw.city?.trim() || "Hyderabad",
+      state: raw.state?.trim() || "Telangana",
+      status: "active",
+      membershipTier: raw.membershipTier?.trim() || undefined,
+      totalAppointments: 0,
+      totalSpend: 0,
+      walletBalance: 0,
+      createdAt: new Date().toISOString().split("T")[0],
+    },
+  };
+}
 
 const columns: Column<User>[] = [
   { key: "name", header: "User", sortable: true, render: u => (
@@ -42,6 +87,7 @@ export default function EntityUsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [actionModal, setActionModal] = useState<{ action: string; user: User } | null>(null);
   const [createModal, setCreateModal] = useState(false);
+  const [bulkModal, setBulkModal] = useState(false);
   const [newUserData, setNewUserData] = useState({
     name: "",
     mobile: "",
@@ -96,6 +142,7 @@ export default function EntityUsersPage() {
         actions={
           <div className="flex items-center gap-2">
             <ExportMenu reportName="Users Report" />
+            <Button variant="secondary" icon={<Upload className="w-4 h-4" />} onClick={() => setBulkModal(true)}>Bulk Upload</Button>
             <Button onClick={() => setCreateModal(true)}>Add User</Button>
           </div>
         }
@@ -243,6 +290,17 @@ export default function EntityUsersPage() {
             </div>
           </form>
         </Modal>
+
+        <BulkUploadModal<User>
+          open={bulkModal}
+          onClose={() => setBulkModal(false)}
+          title="Bulk Upload Users"
+          subtitle="Register multiple patients/users at once via Excel"
+          templateColumns={bulkUploadColumns}
+          templateFileName="users-template.xlsx"
+          parseRow={parseUserRow}
+          onConfirm={rows => setUserList(prev => [...rows, ...prev])}
+        />
       </div>
     </div>
   );

@@ -8,11 +8,41 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ExportMenu } from "@/components/ui/ExportMenu";
+import { BulkUploadModal, type BulkUploadColumn } from "@/components/ui/BulkUploadModal";
 import { admins } from "@/lib/mock-data/entities";
 import { formatDate } from "@/lib/utils/format";
 import type { Admin } from "@/lib/types/entity";
 import type { Column } from "@/components/ui/DataTable";
-import { UserCog, Plus, Eye, Key, Shield } from "lucide-react";
+import { UserCog, Plus, Eye, Key, Shield, Upload } from "lucide-react";
+
+const bulkUploadColumns: BulkUploadColumn[] = [
+  { key: "name", header: "Full Name", required: true, example: "Vikram Singh" },
+  { key: "email", header: "Email", required: true, example: "vikram@vita.health" },
+  { key: "role", header: "Role (admin/super_admin)", example: "admin" },
+];
+
+function parseAdminRow(raw: Record<string, string>, rowIndex: number): { data: Admin } | { error: string } {
+  const name = raw.name?.trim();
+  const email = raw.email?.trim();
+  if (!name) return { error: "Full Name is required." };
+  if (!email) return { error: "Email is required." };
+
+  const roleRaw = raw.role?.trim().toLowerCase().replace(/\s+/g, "_");
+  const role = roleRaw === "super_admin" ? "super_admin" : "admin";
+
+  return {
+    data: {
+      id: `a-${Date.now()}-${rowIndex}`,
+      name,
+      email,
+      role,
+      status: "active",
+      permissions: ["view_users"],
+      assignedBy: "Super Admin",
+      createdAt: new Date().toISOString().split("T")[0],
+    },
+  };
+}
 
 const columns: Column<Admin>[] = [
   { key: "name", header: "Admin", sortable: true, render: a => (
@@ -33,21 +63,28 @@ const allPermissions = ["view_users", "manage_users", "view_hospitals", "manage_
 
 export default function EntityAdminsPage() {
   const [query, setQuery] = useState("");
+  const [adminList, setAdminList] = useState<Admin[]>(admins);
   const [selected, setSelected] = useState<Admin | null>(null);
   const [createModal, setCreateModal] = useState(false);
-  const filtered = admins.filter(a => a.name.toLowerCase().includes(query.toLowerCase()) || a.email.toLowerCase().includes(query.toLowerCase()));
+  const [bulkModal, setBulkModal] = useState(false);
+  const filtered = adminList.filter(a => a.name.toLowerCase().includes(query.toLowerCase()) || a.email.toLowerCase().includes(query.toLowerCase()));
 
   return (
     <div className="min-h-screen">
       <TopHeader title="Admin Management" subtitle="Create, manage and assign roles to admin users" role="super-admin"
-        actions={<Button icon={<Plus className="w-4 h-4" />} onClick={() => setCreateModal(true)}>Create Admin</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" icon={<Upload className="w-4 h-4" />} onClick={() => setBulkModal(true)}>Bulk Upload</Button>
+            <Button icon={<Plus className="w-4 h-4" />} onClick={() => setCreateModal(true)}>Create Admin</Button>
+          </div>
+        }
       />
       <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="Total Admins" value={admins.length} icon={<UserCog className="w-full h-full" />} color="blue" />
-          <StatCard label="Active" value={admins.filter(a => a.status === "active").length} icon={<Shield className="w-full h-full" />} color="emerald" />
-          <StatCard label="Suspended" value={admins.filter(a => a.status === "suspended").length} icon={<UserCog className="w-full h-full" />} color="amber" />
-          <StatCard label="Super Admins" value={admins.filter(a => a.role === "super_admin").length} icon={<Shield className="w-full h-full" />} color="purple" />
+          <StatCard label="Total Admins" value={adminList.length} icon={<UserCog className="w-full h-full" />} color="blue" />
+          <StatCard label="Active" value={adminList.filter(a => a.status === "active").length} icon={<Shield className="w-full h-full" />} color="emerald" />
+          <StatCard label="Suspended" value={adminList.filter(a => a.status === "suspended").length} icon={<UserCog className="w-full h-full" />} color="amber" />
+          <StatCard label="Super Admins" value={adminList.filter(a => a.role === "super_admin").length} icon={<Shield className="w-full h-full" />} color="purple" />
         </div>
         <SearchInput placeholder="Search admins by name or email..." onSearch={setQuery} className="max-w-lg" />
         <DataTable
@@ -92,6 +129,17 @@ export default function EntityAdminsPage() {
             <Button variant="secondary" onClick={() => setCreateModal(false)}>Cancel</Button>
           </div>
         </Modal>
+
+        <BulkUploadModal<Admin>
+          open={bulkModal}
+          onClose={() => setBulkModal(false)}
+          title="Bulk Upload Admins"
+          subtitle="Create multiple admin accounts at once via Excel"
+          templateColumns={bulkUploadColumns}
+          templateFileName="admins-template.xlsx"
+          parseRow={parseAdminRow}
+          onConfirm={rows => setAdminList(prev => [...rows, ...prev])}
+        />
       </div>
     </div>
   );

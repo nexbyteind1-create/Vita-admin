@@ -8,12 +8,43 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ExportMenu } from "@/components/ui/ExportMenu";
+import { BulkUploadModal, type BulkUploadColumn } from "@/components/ui/BulkUploadModal";
 import { hospitals } from "@/lib/mock-data/entities";
 import { formatDate, formatNumber } from "@/lib/utils/format";
 import type { Hospital } from "@/lib/types/entity";
 import type { Column } from "@/components/ui/DataTable";
-import { Building2, CheckCircle, XCircle, Pause, Play, Ban, Eye, Users, Stethoscope, Calendar, Percent } from "lucide-react";
+import { Building2, CheckCircle, XCircle, Pause, Play, Ban, Eye, Users, Stethoscope, Calendar, Percent, Upload } from "lucide-react";
 import Link from "next/link";
+
+const bulkUploadColumns: BulkUploadColumn[] = [
+  { key: "name", header: "Hospital Name", required: true, example: "Apollo Hospitals" },
+  { key: "registrationId", header: "Registration / License ID", required: true, example: "REG-AP-2026-092" },
+  { key: "city", header: "City", example: "Hyderabad" },
+  { key: "state", header: "State", example: "Telangana" },
+];
+
+function parseHospitalRow(raw: Record<string, string>, rowIndex: number): { data: Hospital } | { error: string } {
+  const name = raw.name?.trim();
+  const registrationId = raw.registrationId?.trim();
+  if (!name) return { error: "Hospital Name is required." };
+  if (!registrationId) return { error: "Registration / License ID is required." };
+
+  return {
+    data: {
+      id: `h-${Date.now()}-${rowIndex}`,
+      name,
+      registrationId,
+      city: raw.city?.trim() || "Hyderabad",
+      state: raw.state?.trim() || "Telangana",
+      status: "active",
+      totalDoctors: 0,
+      totalPatients: 0,
+      totalAppointments: 0,
+      approvalStatus: "approved",
+      createdAt: new Date().toISOString().split("T")[0],
+    },
+  };
+}
 
 const columns: Column<Hospital>[] = [
   { key: "name", header: "Hospital", sortable: true, render: h => (
@@ -35,6 +66,7 @@ export default function EntityHospitalsPage() {
   const [selected, setSelected] = useState<Hospital | null>(null);
   const [actionModal, setActionModal] = useState<{ action: string; entity: Hospital } | null>(null);
   const [createModal, setCreateModal] = useState(false);
+  const [bulkModal, setBulkModal] = useState(false);
   const [newHospital, setNewHospital] = useState({
     name: "",
     registrationId: "",
@@ -80,6 +112,7 @@ export default function EntityHospitalsPage() {
         actions={
           <div className="flex items-center gap-2">
             <ExportMenu reportName="Hospitals Report" />
+            <Button variant="secondary" icon={<Upload className="w-4 h-4" />} onClick={() => setBulkModal(true)}>Bulk Upload</Button>
             <Button onClick={() => setCreateModal(true)}>Add Hospital</Button>
           </div>
         }
@@ -178,6 +211,17 @@ export default function EntityHospitalsPage() {
             </div>
           </form>
         </Modal>
+
+        <BulkUploadModal<Hospital>
+          open={bulkModal}
+          onClose={() => setBulkModal(false)}
+          title="Bulk Upload Hospitals"
+          subtitle="Register multiple hospital partners at once via Excel"
+          templateColumns={bulkUploadColumns}
+          templateFileName="hospitals-template.xlsx"
+          parseRow={parseHospitalRow}
+          onConfirm={rows => setHospitalList(prev => [...rows, ...prev])}
+        />
       </div>
     </div>
   );

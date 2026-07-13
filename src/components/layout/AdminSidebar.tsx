@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils/cn";
 import {
   LayoutDashboard, Users, Building2, Stethoscope, FlaskConical, Scan,
   Store, CreditCard, BarChart3, FileText, ChevronDown, Activity,
-  HeartPulse, ShieldCheck, X
+  HeartPulse, ShieldCheck, LifeBuoy, X
 } from "lucide-react";
 import { useState } from "react";
 import { useSidebar } from "./SidebarContext";
@@ -34,6 +34,7 @@ const navItems: NavItem[] = [
   { label: "Diagnostics", href: "/admin/diagnostics", icon: <Scan className="w-4 h-4" /> },
   { label: "Medical Stores", href: "/admin/medical-stores", icon: <Store className="w-4 h-4" /> },
   { label: "Users", href: "/admin/users", icon: <Users className="w-4 h-4" /> },
+  { label: "Support Tickets", href: "/admin/support/tickets", icon: <LifeBuoy className="w-4 h-4" /> },
   { label: "Reports", href: "/admin/reports", icon: <FileText className="w-4 h-4" /> },
 ];
 
