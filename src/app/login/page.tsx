@@ -1,26 +1,98 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { HeartPulse, Eye, EyeOff, ArrowRight, Shield, Sparkles } from "lucide-react";
+import { HeartPulse, Eye, EyeOff, ArrowRight, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { supabase } from "@/lib/supabase/client";
+import { ADMIN_COLUMNS, homeFor, useSession, type AdminProfile } from "@/lib/auth/session";
 
+/**
+ * Supabase Auth email + password. The account's admin_users row decides where
+ * it lands (super admin, admin, hospital, doctor, lab / diagnostic centre).
+ * An account that isn't in admin_users yet is filed as an access request (the
+ * very first one becomes the super admin); everyone else waits for a super
+ * admin to approve them, and stays signed out until then.
+ */
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState<"admin" | "super-admin">("admin");
+  const { status, admin, refresh, signOut } = useSession();
+  const [mode, setMode] = useState<"signin" | "request">("signin");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  // Already signed in with approved access: go straight to that role's dashboard.
+  useEffect(() => {
+    if (status === "ready" && admin) router.replace(homeFor(admin.role));
+  }, [status, admin, router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const enter = async (row: AdminProfile) => {
+    if (!row.is_active) {
+      await signOut();
+      setInfo("Your access request is waiting for a super admin to approve it. You'll be able to sign in once it's approved.");
+      return;
+    }
+    router.replace(homeFor(row.role));
+  };
+
+  /** This account's admin row, filing an access request if there isn't one yet. */
+  const adminRow = async (userId: string, fullName: string) => {
+    const existing = await supabase()
+      .from("admin_users")
+      .select(ADMIN_COLUMNS)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existing.error) throw new Error(existing.error.message);
+    if (existing.data) return existing.data as AdminProfile;
+    const { data, error } = await supabase().rpc("request_admin_access", { p_full_name: fullName });
+    if (error) throw new Error(error.message);
+    return data as AdminProfile;
+  };
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email || !password) { setError("Please enter email and password."); return; }
+    setInfo("");
+    if (!email || !password) return setError("Please enter email and password.");
+    if (mode === "request" && password.length < 8) return setError("Use a password of at least 8 characters.");
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setLoading(false);
-    router.push(role === "super-admin" ? "/super-admin/dashboard" : "/admin/dashboard");
+    try {
+      let userId: string;
+      if (mode === "signin") {
+        const { data, error } = await supabase().auth.signInWithPassword({ email: email.trim(), password });
+        if (error) throw new Error(error.message === "Invalid login credentials" ? "Wrong email or password." : error.message);
+        userId = data.user.id;
+      } else {
+        const { data, error } = await supabase().auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { full_name: name.trim() } },
+        });
+        if (error) throw new Error(error.message);
+        if (!data.session || !data.user) {
+          setInfo("Check your inbox to confirm your email, then come back and sign in — your access request is filed when you do.");
+          setMode("signin");
+          return;
+        }
+        userId = data.user.id;
+      }
+      const row = await adminRow(userId, name.trim());
+      await refresh();
+      await enter(row);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchMode = (next: "signin" | "request") => {
+    setMode(next);
+    setError("");
+    setInfo("");
   };
 
   return (
@@ -47,35 +119,25 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="glass-card p-6 sm:p-8 glow-red">
-          {/* Role Selector */}
-          <div className="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
-            <button
-              onClick={() => setRole("admin")}
-              className={cn("flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200", role === "admin" ? "bg-red-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-700")}
-            >
-              <Shield className="w-4 h-4" />
-              Admin
-            </button>
-            <button
-              onClick={() => setRole("super-admin")}
-              className={cn("flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200", role === "super-admin" ? "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-700")}
-            >
-              <Sparkles className="w-4 h-4" />
-              Super Admin
-            </button>
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-slate-900">{mode === "signin" ? "Sign in" : "Request console access"}</h2>
+            <p className="text-xs text-slate-500 mt-1">
+              {mode === "signin"
+                ? "Super admins, admins, hospitals, doctors, labs and diagnostic centres — you'll land on your own dashboard."
+                : "A super admin approves new accounts and sets their role. The first account ever created becomes the super admin."}
+            </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={submit} className="space-y-4">
+            {mode === "request" && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Full name</label>
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" className="vita-input" autoComplete="name" required />
+              </div>
+            )}
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder={role === "super-admin" ? "superadmin@vita.health" : "admin@vita.health"}
-                className="vita-input"
-                autoComplete="email"
-              />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@vita.health" className="vita-input" autoComplete="email" />
             </div>
 
             <div>
@@ -85,9 +147,9 @@ export default function LoginPage() {
                   type={showPass ? "text" : "password"}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder={mode === "request" ? "At least 8 characters" : "••••••••"}
                   className="vita-input pr-10"
-                  autoComplete="current-password"
+                  autoComplete={mode === "request" ? "new-password" : "current-password"}
                 />
                 <button type="button" onClick={() => setShowPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -95,49 +157,55 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && (
-              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
-            )}
-
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 text-slate-500 cursor-pointer">
-                <input type="checkbox" className="accent-red-600" />
-                Remember me
-              </label>
-              <button type="button" className="text-red-600 hover:text-red-700 transition-colors">Forgot password?</button>
-            </div>
+            {error && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+            {info && <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">{info}</p>}
 
             <button
               type="submit"
               disabled={loading}
               className={cn(
-                "w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-lg",
-                role === "super-admin"
-                  ? "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-red-900/20"
-                  : "bg-red-600 hover:bg-red-500 text-white shadow-red-900/20",
-                loading && "opacity-70 cursor-not-allowed"
+                "w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-lg bg-red-600 hover:bg-red-500 text-white shadow-red-900/20",
+                loading && "opacity-70 cursor-not-allowed",
               )}
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : mode === "signin" ? (
+                <>
+                  Sign in
+                  <ArrowRight className="w-4 h-4" />
+                </>
               ) : (
                 <>
-                  Sign In as {role === "super-admin" ? "Super Admin" : "Admin"}
-                  <ArrowRight className="w-4 h-4" />
+                  Request access
+                  <UserPlus className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          <p className="text-center text-xs text-slate-400 mt-6">
+          <p className="text-center text-xs text-slate-500 mt-5">
+            {mode === "signin" ? (
+              <>
+                New to the console?{" "}
+                <button type="button" onClick={() => switchMode("request")} className="text-red-600 hover:text-red-700 font-semibold">
+                  Request access
+                </button>
+              </>
+            ) : (
+              <>
+                Already have access?{" "}
+                <button type="button" onClick={() => switchMode("signin")} className="text-red-600 hover:text-red-700 font-semibold">
+                  Sign in
+                </button>
+              </>
+            )}
+          </p>
+
+          <p className="text-center text-xs text-slate-400 mt-4">
             Vita Healthcare Platform &copy; {new Date().getFullYear()} · Secure Admin Console
           </p>
         </div>
-
-        {/* Demo hint */}
-        <p className="text-center text-xs text-slate-400 mt-4">
-          Demo: Enter any email and password to continue
-        </p>
       </div>
     </div>
   );

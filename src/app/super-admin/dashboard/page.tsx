@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { TopHeader } from "@/components/layout/TopHeader";
 import { StatCard } from "@/components/ui/StatCard";
+import { LiveOverview } from "@/features/overview";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { ExportMenu } from "@/components/ui/ExportMenu";
 import { AreaChartComponent } from "@/components/charts/AreaChart";
@@ -39,6 +40,10 @@ export default function SuperAdminDashboard() {
       />
 
       <div className="p-4 sm:p-6 space-y-8 max-w-[1600px]">
+        <LiveOverview />
+        <p className="text-xs text-slate-400 border-t border-slate-200 pt-4">
+          The analytics below are sample figures from the original design and are not connected to live data yet.
+        </p>
         <FilterBar />
 
         {/* ── Healthcare Activity ── */}

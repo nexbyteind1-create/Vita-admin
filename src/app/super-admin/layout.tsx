@@ -1,11 +1,13 @@
 import { SuperAdminSidebar } from "@/components/layout/SuperAdminSidebar";
 import { SidebarProvider } from "@/components/layout/SidebarContext";
+import { RequireAdmin } from "@/lib/auth/session";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Super Admin" };
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   return (
+    <RequireAdmin roles={["super_admin"]}>
     <SidebarProvider>
       <div className="flex h-screen overflow-hidden bg-vita-bg">
         <SuperAdminSidebar />
@@ -16,5 +18,6 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         </div>
       </div>
     </SidebarProvider>
+    </RequireAdmin>
   );
 }

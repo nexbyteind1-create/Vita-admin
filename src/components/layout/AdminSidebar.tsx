@@ -3,14 +3,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import {
-  LayoutDashboard, Users, Building2, Stethoscope, FlaskConical, Scan,
-  Store, CreditCard, BarChart3, FileText, ChevronDown, Activity,
-  HeartPulse, ShieldCheck, LifeBuoy, X
+  LayoutDashboard, Users, ChevronDown, HeartPulse, ShieldCheck, LifeBuoy, X,
+  CalendarCheck, CalendarClock, LayoutGrid, Package
 } from "lucide-react";
 import { useState } from "react";
 import { useSidebar } from "./SidebarContext";
+import { SidebarUser } from "./SidebarUser";
 
-interface NavItem {
+export interface NavItem {
   label: string;
   href?: string;
   icon: React.ReactNode;
@@ -20,22 +20,41 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/admin/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
   {
-    label: "Membership", icon: <ShieldCheck className="w-4 h-4" />,
+    label: "Operations", icon: <CalendarCheck className="w-4 h-4" />,
     children: [
-      { label: "Overview", href: "/admin/membership/dashboard" },
-      { label: "Analytics", href: "/admin/membership/analytics" },
-      { label: "Feature Usage", href: "/admin/membership/feature-usage" },
-      { label: "Reports", href: "/admin/membership/reports" },
+      { label: "Bookings", href: "/admin/bookings" },
+      { label: "Uploaded Bills", href: "/admin/bills" },
+      { label: "Reviews", href: "/admin/reviews" },
     ],
   },
-  { label: "Hospitals", href: "/admin/hospitals", icon: <Building2 className="w-4 h-4" /> },
-  { label: "Doctors", href: "/admin/doctors", icon: <Stethoscope className="w-4 h-4" /> },
-  { label: "Laboratories", href: "/admin/laboratories", icon: <FlaskConical className="w-4 h-4" /> },
-  { label: "Diagnostics", href: "/admin/diagnostics", icon: <Scan className="w-4 h-4" /> },
-  { label: "Medical Stores", href: "/admin/medical-stores", icon: <Store className="w-4 h-4" /> },
+  {
+    label: "Catalogue", icon: <Package className="w-4 h-4" />,
+    children: [
+      { label: "Hospitals", href: "/admin/hospitals" },
+      { label: "Doctors", href: "/admin/doctors" },
+      { label: "Laboratories", href: "/admin/laboratories" },
+      { label: "Diagnostic Centres", href: "/admin/diagnostics" },
+      { label: "Tests & Prices", href: "/admin/catalog/tests" },
+    ],
+  },
+  {
+    label: "Schedules", icon: <CalendarClock className="w-4 h-4" />,
+    children: [
+      { label: "Doctor Slots", href: "/admin/schedules/doctor-slots" },
+      { label: "Lab & Centre Slots", href: "/admin/schedules/centre-slots" },
+    ],
+  },
+  {
+    label: "App Content", icon: <LayoutGrid className="w-4 h-4" />,
+    children: [
+      { label: "Home Quick Actions", href: "/admin/content/quick-actions" },
+      { label: "Home Vault", href: "/admin/content/vault" },
+      { label: "Offers", href: "/admin/content/offers" },
+    ],
+  },
   { label: "Users", href: "/admin/users", icon: <Users className="w-4 h-4" /> },
+  { label: "Membership", href: "/admin/membership/dashboard", icon: <ShieldCheck className="w-4 h-4" /> },
   { label: "Support Tickets", href: "/admin/support/tickets", icon: <LifeBuoy className="w-4 h-4" /> },
-  { label: "Reports", href: "/admin/reports", icon: <FileText className="w-4 h-4" /> },
 ];
 
 function NavGroup({ item, collapsed, onNavigate }: { item: NavItem; collapsed: boolean; onNavigate?: () => void }) {
@@ -76,6 +95,11 @@ function NavGroup({ item, collapsed, onNavigate }: { item: NavItem; collapsed: b
 }
 
 export function AdminSidebar() {
+  return <PortalSidebar items={navItems} subtitle="Admin Portal" />;
+}
+
+/** Sidebar shell shared by the admin and partner consoles. */
+export function PortalSidebar({ items, subtitle }: { items: NavItem[]; subtitle: string }) {
   const { isOpen, close: onClose } = useSidebar();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -98,7 +122,7 @@ export function AdminSidebar() {
           {!collapsed && (
             <div className="flex-1">
               <div className="text-sm font-bold text-slate-900 tracking-tight">VitaAdmin</div>
-              <div className="text-xs text-slate-400">Admin Portal</div>
+              <div className="text-xs text-slate-400 truncate">{subtitle}</div>
             </div>
           )}
           <button onClick={onClose} className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
@@ -108,7 +132,7 @@ export function AdminSidebar() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-          {navItems.map(item => (
+          {items.map(item => (
             <NavGroup key={item.label} item={item} collapsed={collapsed} onNavigate={onClose} />
           ))}
         </nav>
@@ -117,6 +141,9 @@ export function AdminSidebar() {
         <button onClick={() => setCollapsed(c => !c)} className="hidden lg:flex items-center justify-center py-3 border-t border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors text-xs gap-2">
           {collapsed ? "→" : "← Collapse"}
         </button>
+
+        {/* Signed-in admin */}
+        {!collapsed && <SidebarUser />}
       </aside>
     </>
   );

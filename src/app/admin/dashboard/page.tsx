@@ -1,6 +1,7 @@
 "use client";
 import { TopHeader } from "@/components/layout/TopHeader";
 import { StatCard } from "@/components/ui/StatCard";
+import { LiveOverview } from "@/features/overview";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { ExportMenu } from "@/components/ui/ExportMenu";
 import { AreaChartComponent } from "@/components/charts/AreaChart";
@@ -52,6 +53,10 @@ export default function AdminDashboard() {
     <div className="min-h-screen">
       <TopHeader title="Admin Dashboard" subtitle="Platform overview & key metrics" role="admin" actions={<ExportMenu reportName="Admin Dashboard" />} />
       <div className="p-4 sm:p-6 space-y-8 max-w-[1600px]">
+        <LiveOverview />
+        <p className="text-xs text-slate-400 border-t border-slate-200 pt-4">
+          The analytics below are sample figures from the original design and are not connected to live data yet.
+        </p>
         <FilterBar filters={[
           { key: "hospital", label: "All Hospitals", value: "", options: [{ label: "Apollo", value: "apollo" }, { label: "Fortis", value: "fortis" }] },
           { key: "doctor", label: "All Doctors", value: "", options: [] },

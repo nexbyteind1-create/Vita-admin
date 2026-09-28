@@ -3,17 +3,25 @@ import { Bell, Search, Settings, Menu } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { useSidebar } from "./SidebarContext";
+import { ROLE_LABEL, useSession, type Portal } from "@/lib/auth/session";
 
 interface TopHeaderProps {
   title: string;
   subtitle?: string;
-  role?: "admin" | "super-admin";
+  role?: Portal;
   actions?: React.ReactNode;
 }
 
 export function TopHeader({ title, subtitle, role = "admin", actions }: TopHeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const { toggle } = useSidebar();
+  const { admin } = useSession();
+  const initials = (admin?.full_name || admin?.email || (role === "super-admin" ? "SA" : "A"))
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(p => p[0]!.toUpperCase())
+    .join("");
 
   return (
     <header className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
@@ -40,7 +48,6 @@ export function TopHeader({ title, subtitle, role = "admin", actions }: TopHeade
         <div className="relative">
           <button onClick={() => setNotifOpen(o => !o)} className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors">
             <Bell className="w-4.5 h-4.5" />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse-glow" />
           </button>
           {notifOpen && (
             <>
@@ -49,20 +56,7 @@ export function TopHeader({ title, subtitle, role = "admin", actions }: TopHeade
                 <div className="px-4 py-2 border-b border-slate-200">
                   <p className="text-sm font-semibold text-slate-900">Notifications</p>
                 </div>
-                {[
-                  { msg: "6,240 memberships expiring this month", time: "Just now", type: "warning" },
-                  { msg: "New hospital registration pending approval", time: "5m ago", type: "info" },
-                  { msg: "Monthly credit limit config updated", time: "1h ago", type: "success" },
-                  { msg: "System audit log exported", time: "2h ago", type: "info" },
-                ].map((n, i) => (
-                  <div key={i} className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-start gap-3">
-                    <div className={cn("w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0", n.type === "warning" ? "bg-amber-500" : n.type === "success" ? "bg-emerald-500" : "bg-red-500")} />
-                    <div>
-                      <p className="text-xs text-slate-700">{n.msg}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{n.time}</p>
-                    </div>
-                  </div>
-                ))}
+                <p className="px-4 py-6 text-xs text-slate-400 text-center">No new notifications</p>
               </div>
             </>
           )}
@@ -71,10 +65,10 @@ export function TopHeader({ title, subtitle, role = "admin", actions }: TopHeade
         {/* Role badge + avatar */}
         <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-200">
           <span className={cn("text-xs font-semibold px-2 py-1 rounded-full", role === "super-admin" ? "bg-red-50 text-red-700 border border-red-200" : "bg-red-50 text-red-700 border border-red-200")}>
-            {role === "super-admin" ? "Super Admin" : "Admin"}
+            {admin ? ROLE_LABEL[admin.role] : role === "super-admin" ? "Super Admin" : "Admin"}
           </span>
           <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white", role === "super-admin" ? "bg-gradient-to-br from-red-600 to-rose-600" : "bg-gradient-to-br from-red-700 to-red-900")}>
-            {role === "super-admin" ? "SA" : "A"}
+            {initials}
           </div>
         </div>
       </div>

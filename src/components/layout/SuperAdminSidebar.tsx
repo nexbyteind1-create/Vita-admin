@@ -3,12 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import {
-  LayoutDashboard, Users, Building2, Stethoscope, FlaskConical, Scan,
-  Store, Wallet, Bot, ChevronDown, ShieldCheck, HeartPulse, Settings,
-  UserCog, FileBarChart, LifeBuoy, X
+  LayoutDashboard, Building2, Wallet, Bot, ChevronDown, ShieldCheck, HeartPulse,
+  UserCog, LifeBuoy, X, CalendarCheck, CalendarClock, LayoutGrid, Package
 } from "lucide-react";
 import { useState } from "react";
 import { useSidebar } from "./SidebarContext";
+import { SidebarUser } from "./SidebarUser";
 
 interface NavItem {
   label: string;
@@ -20,6 +20,47 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Enterprise Dashboard", href: "/super-admin/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+  {
+    label: "Operations", icon: <CalendarCheck className="w-4 h-4" />,
+    children: [
+      { label: "Bookings", href: "/super-admin/bookings" },
+      { label: "Uploaded Bills", href: "/super-admin/bills" },
+      { label: "Reviews", href: "/super-admin/reviews" },
+    ],
+  },
+  {
+    label: "Catalogue", icon: <Package className="w-4 h-4" />,
+    children: [
+      { label: "Hospitals", href: "/super-admin/entities/hospitals" },
+      { label: "Doctors", href: "/super-admin/entities/doctors" },
+      { label: "Laboratories", href: "/super-admin/entities/laboratories" },
+      { label: "Diagnostic Centres", href: "/super-admin/entities/diagnostics" },
+      { label: "Tests & Prices", href: "/super-admin/catalog/tests" },
+    ],
+  },
+  {
+    label: "Schedules", icon: <CalendarClock className="w-4 h-4" />,
+    children: [
+      { label: "Doctor Slots", href: "/super-admin/schedules/doctor-slots" },
+      { label: "Lab & Centre Slots", href: "/super-admin/schedules/centre-slots" },
+    ],
+  },
+  {
+    label: "App Content", icon: <LayoutGrid className="w-4 h-4" />,
+    children: [
+      { label: "Home Quick Actions", href: "/super-admin/content/quick-actions" },
+      { label: "Home Vault", href: "/super-admin/content/vault" },
+      { label: "Offers", href: "/super-admin/content/offers" },
+    ],
+  },
+  {
+    label: "Users & Access", icon: <UserCog className="w-4 h-4" />,
+    children: [
+      { label: "Users", href: "/super-admin/entities/users" },
+      { label: "Admins", href: "/super-admin/entities/admins" },
+      { label: "Audit Log", href: "/super-admin/audit-log" },
+    ],
+  },
   {
     label: "Membership", icon: <ShieldCheck className="w-4 h-4" />,
     children: [
@@ -36,13 +77,7 @@ const navItems: NavItem[] = [
     label: "Entity Management", icon: <Building2 className="w-4 h-4" />,
     children: [
       { label: "Dashboard", href: "/super-admin/entities/dashboard" },
-      { label: "Users", href: "/super-admin/entities/users" },
-      { label: "Hospitals", href: "/super-admin/entities/hospitals" },
-      { label: "Doctors", href: "/super-admin/entities/doctors" },
       { label: "Medical Stores", href: "/super-admin/entities/medical-stores" },
-      { label: "Laboratories", href: "/super-admin/entities/laboratories" },
-      { label: "Diagnostics", href: "/super-admin/entities/diagnostics" },
-      { label: "Admins", href: "/super-admin/entities/admins" },
     ],
   },
   {
@@ -128,16 +163,8 @@ export function SuperAdminSidebar() {
           ))}
         </nav>
 
-        {/* User */}
-        <div className="p-4 border-t border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-rose-600 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0">SA</div>
-            <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-700 truncate">Super Admin</div>
-              <div className="text-xs text-slate-400 truncate">admin@vita.health</div>
-            </div>
-          </div>
-        </div>
+        {/* Signed-in admin */}
+        <SidebarUser />
       </aside>
     </>
   );
