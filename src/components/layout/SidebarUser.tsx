@@ -2,9 +2,8 @@
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { ROLE_LABEL, useSession } from "@/lib/auth/session";
-
 /** The signed-in admin at the foot of the sidebar, with sign out. */
-export function SidebarUser() {
+export function SidebarUser({ collapsed = false }: { collapsed?: boolean }) {
   const { admin, signOut } = useSession();
   const router = useRouter();
   const name = admin?.full_name || admin?.email || "Admin";
@@ -14,6 +13,27 @@ export function SidebarUser() {
     .slice(0, 2)
     .map(p => p[0]!.toUpperCase())
     .join("");
+
+  const signOutClick = async () => {
+    await signOut();
+    router.replace("/login");
+  };
+
+  if (collapsed) {
+    return (
+      <div className="p-3 border-t border-slate-200 flex justify-center">
+        <button
+          type="button"
+          onClick={signOutClick}
+          className="w-9 h-9 bg-gradient-to-br from-red-600 to-rose-600 rounded-full flex items-center justify-center text-xs font-bold text-white hover:ring-2 hover:ring-red-200 transition-shadow"
+          title={`${name} — Sign out`}
+          aria-label="Sign out"
+        >
+          {initials}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 border-t border-slate-200">
@@ -28,10 +48,8 @@ export function SidebarUser() {
           </div>
         </div>
         <button
-          onClick={async () => {
-            await signOut();
-            router.replace("/login");
-          }}
+          type="button"
+          onClick={signOutClick}
           className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
           title="Sign out"
           aria-label="Sign out"

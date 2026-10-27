@@ -192,14 +192,18 @@ export function SupportTicketsView({ role }: { role: "admin" | "super-admin" }) 
     <div className="min-h-screen">
       <TopHeader
         title="Support Tickets"
-        subtitle="All support tickets across hospitals, doctors, labs, diagnostics, medical stores and users"
+        subtitle="Tickets from hospitals, doctors, labs, diagnostics, medical stores, and users"
         role={role}
         actions={
-          <div className="flex items-center gap-2">
+          <>
             <ExportMenu reportName="Support Tickets Report" />
-            <Button variant="secondary" icon={<Upload className="w-4 h-4" />} onClick={() => setBulkModal(true)}>Bulk Upload</Button>
-            <Button icon={<Plus className="w-4 h-4" />} onClick={() => setCreateModal(true)}>New Ticket</Button>
-          </div>
+            <Button variant="secondary" icon={<Upload className="w-4 h-4" />} onClick={() => setBulkModal(true)}>
+              Bulk Upload
+            </Button>
+            <Button icon={<Plus className="w-4 h-4" />} onClick={() => setCreateModal(true)}>
+              New Ticket
+            </Button>
+          </>
         }
       />
       <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">

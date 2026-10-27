@@ -1,4 +1,5 @@
 "use client";
+import { useMemo } from "react";
 import { TopHeader } from "@/components/layout/TopHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { LiveOverview } from "@/features/overview";
@@ -49,9 +50,61 @@ export default function AdminDashboard() {
     ]},
   ];
 
+  const exportSheets = useMemo(
+    () => [
+      {
+        name: "Dashboard Metrics",
+        columns: [
+          { header: "Section", key: "section" },
+          { header: "Metric", key: "metric" },
+          { header: "Value", key: "value" },
+        ],
+        rows: cards.flatMap(section =>
+          section.items.map(item => ({
+            section: section.section,
+            metric: item.label,
+            value: item.value,
+          }))
+        ),
+      },
+      {
+        name: "User Growth",
+        columns: [
+          { header: "Month", key: "month" },
+          { header: "Total Users", key: "totalUsers" },
+          { header: "New Users", key: "newUsers" },
+        ],
+        rows: userGrowthData.map(row => ({
+          month: row.date,
+          totalUsers: row.value,
+          newUsers: row.value2 ?? 0,
+        })),
+      },
+      {
+        name: "Appointments",
+        columns: [
+          { header: "Month", key: "month" },
+          { header: "Total", key: "total" },
+          { header: "Cancelled", key: "cancelled" },
+        ],
+        rows: appointmentTrendData.map(row => ({
+          month: row.date,
+          total: row.value,
+          cancelled: row.value2 ?? 0,
+        })),
+      },
+    ],
+    [cards]
+  );
+
   return (
     <div className="min-h-screen">
-      <TopHeader title="Admin Dashboard" subtitle="Platform overview & key metrics" role="admin" actions={<ExportMenu reportName="Admin Dashboard" />} />
+      <TopHeader
+        title="Admin Dashboard"
+        subtitle="Platform overview & key metrics"
+        role="admin"
+        actions={<ExportMenu reportName="Admin Dashboard" sheets={exportSheets} />}
+      />
       <div className="p-4 sm:p-6 space-y-8 max-w-[1600px]">
         <LiveOverview />
         <p className="text-xs text-slate-400 border-t border-slate-200 pt-4">

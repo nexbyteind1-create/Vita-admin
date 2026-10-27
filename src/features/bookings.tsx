@@ -94,12 +94,22 @@ function StatusPill({ booking }: { booking: Booking }) {
   return <span className={cn("inline-flex px-2.5 py-1 text-xs font-medium border rounded-full", map[s])}>{label[s]}</span>;
 }
 
-function PaymentPill({ booking }: { booking: Booking }) {
-  if (booking.fee == null) return <span className="text-xs text-slate-400">No fee</span>;
-  return booking.payment_status === "paid" ? (
-    <span className="text-xs font-medium text-emerald-600">Paid · {booking.payment_method === "vita" ? "Vita" : "Hospital"}</span>
-  ) : (
-    <span className="text-xs font-medium text-amber-600">Unpaid</span>
+function PaymentPill({ booking, detailed = false }: { booking: Booking; detailed?: boolean }) {
+  if (booking.fee == null) {
+    return <span className="text-xs text-slate-400">—</span>;
+  }
+  if (booking.payment_status === "paid") {
+    return (
+      <span className="inline-flex px-2.5 py-1 text-xs font-medium border rounded-full bg-emerald-50 text-emerald-700 border-emerald-200">
+        Paid
+        {detailed && booking.payment_method ? ` · ${booking.payment_method === "vita" ? "Vita" : "Hospital"}` : ""}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex px-2.5 py-1 text-xs font-medium border rounded-full bg-amber-50 text-amber-700 border-amber-200">
+      Not Paid
+    </span>
   );
 }
 
@@ -108,6 +118,51 @@ const patientLabel = (b: Booking, accounts: Map<string, Account>) => {
   if (b.patient) return `${b.patient.display_name || b.patient.relation} (${b.patient.relation})`;
   return `${account?.full_name || "Account holder"} (Self)`;
 };
+
+const BOOKING_STATUS_LABEL: Record<Status | "due", string> = {
+  upcoming: "Upcoming",
+  due: "Awaiting completion",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+type PaymentFilter = "all" | "paid" | "not_paid";
+
+function paymentSearchLabel(booking: Booking): string {
+  if (booking.fee == null) return "";
+  return booking.payment_status === "paid" ? "paid" : "not paid";
+}
+
+function bookingSearchText(booking: Booking, accounts: Map<string, Account>): string {
+  const status = effectiveStatus(booking);
+  return [
+    booking.doctor?.full_name,
+    booking.test?.name,
+    booking.title,
+    booking.booking_code,
+    TYPE_LABEL[booking.booking_type],
+    formatDateTime(booking.scheduled_at),
+    patientLabel(booking, accounts),
+    accounts.get(booking.user_id)?.phone,
+    booking.centre?.name,
+    booking.provider_name,
+    booking.location_text,
+    booking.fee != null ? String(booking.fee) : "",
+    paymentSearchLabel(booking),
+    BOOKING_STATUS_LABEL[status],
+    String(booking.documents.length),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function matchesPaymentFilter(booking: Booking, payment: PaymentFilter): boolean {
+  if (payment === "all") return true;
+  if (booking.fee == null) return false;
+  if (payment === "paid") return booking.payment_status === "paid";
+  return booking.payment_status === "unpaid";
+}
 
 function DetailModal({
   booking,
@@ -189,7 +244,7 @@ function DetailModal({
       ? ([["Collection", booking.collection_type === "home" ? `Home — ${booking.collection_address ?? ""}` : "At the centre"]] as [string, React.ReactNode][])
       : []),
     ["Status", <StatusPill key="s" booking={booking} />],
-    ["Payment", <PaymentPill key="p" booking={booking} />],
+    ["Payment", <PaymentPill key="p" booking={booking} detailed />],
     ...(booking.cancel_reason ? ([["Cancel reason", booking.cancel_reason]] as [string, React.ReactNode][]) : []),
   ];
 
@@ -324,8 +379,8 @@ export default function BookingsPage() {
   const params = useSearchParams();
   const { portal: role, doctorId, centreId } = usePortal();
   const [query, setQuery] = useState("");
-  const [type, setType] = useState<BookingType | "all">("all");
-  const [status, setStatus] = useState<Status | "due" | "all">("all");
+  const [payment, setPayment] = useState<PaymentFilter>("all");
+  const [bookingStatus, setBookingStatus] = useState<Status | "due" | "all">("all");
   const [openId, setOpenId] = useState<string | null>(params.get("id"));
   const slotFilter = params.get("slot");
 
@@ -356,14 +411,12 @@ export default function BookingsPage() {
     const term = query.trim().toLowerCase();
     return bookings.filter(b => {
       if (slotFilter && b.centre_slot_id !== slotFilter && b.slot_id !== slotFilter) return false;
-      if (type !== "all" && b.booking_type !== type) return false;
-      if (status !== "all" && effectiveStatus(b) !== status) return false;
+      if (!matchesPaymentFilter(b, payment)) return false;
+      if (bookingStatus !== "all" && effectiveStatus(b) !== bookingStatus) return false;
       if (!term) return true;
-      const account = accounts.get(b.user_id);
-      return [b.booking_code, b.title, b.provider_name, b.doctor?.full_name, b.test?.name, account?.full_name, account?.phone, b.patient?.display_name]
-        .some(v => v?.toLowerCase().includes(term));
+      return bookingSearchText(b, accounts).includes(term);
     });
-  }, [bookings, accounts, query, type, status, slotFilter]);
+  }, [bookings, accounts, query, payment, bookingStatus, slotFilter]);
 
   const open = bookings.find(b => b.id === openId) ?? null;
 
@@ -384,8 +437,14 @@ export default function BookingsPage() {
     { key: "scheduled_at", header: "When", sortable: true, render: b => <span className="text-sm">{formatDateTime(b.scheduled_at)}</span> },
     { key: "patient", header: "Patient", render: b => <span className="text-sm text-slate-600">{patientLabel(b, accounts)}</span> },
     { key: "provider_name", header: "Where", render: b => <span className="text-sm text-slate-500">{b.centre?.name ?? b.provider_name ?? "—"}</span> },
-    { key: "fee", header: "Fee", align: "right", render: b => (b.fee != null ? <div className="text-right"><div className="font-semibold">{formatCurrency(b.fee)}</div><PaymentPill booking={b} /></div> : "—") },
-    { key: "status", header: "Status", render: b => <StatusPill booking={b} /> },
+    {
+      key: "fee",
+      header: "Fee",
+      align: "right",
+      render: b => (b.fee != null ? <span className="font-semibold">{formatCurrency(b.fee)}</span> : "—"),
+    },
+    { key: "payment_status", header: "Payment", render: b => <PaymentPill booking={b} /> },
+    { key: "status", header: "Booking", render: b => <StatusPill booking={b} /> },
     {
       key: "documents",
       header: "Docs",
@@ -411,27 +470,41 @@ export default function BookingsPage() {
       <TopHeader title="Bookings" subtitle="Doctor consults, lab tests and scans booked in the app" role={role} />
       <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="Upcoming" value={count("upcoming")} icon={<CalendarCheck className="w-full h-full" />} color="blue" onClick={() => setStatus("upcoming")} />
-          <StatCard label="Awaiting completion" value={count("due")} icon={<Clock className="w-full h-full" />} color="amber" onClick={() => setStatus("due")} subValue="Past, still marked upcoming" />
-          <StatCard label="Completed" value={count("completed")} icon={<CheckCircle className="w-full h-full" />} color="emerald" onClick={() => setStatus("completed")} />
+          <StatCard label="Upcoming" value={count("upcoming")} icon={<CalendarCheck className="w-full h-full" />} color="blue" onClick={() => { setBookingStatus("upcoming"); setPayment("all"); }} />
+          <StatCard label="Awaiting completion" value={count("due")} icon={<Clock className="w-full h-full" />} color="amber" onClick={() => { setBookingStatus("due"); setPayment("all"); }} subValue="Past, still marked upcoming" />
+          <StatCard label="Completed" value={count("completed")} icon={<CheckCircle className="w-full h-full" />} color="emerald" onClick={() => { setBookingStatus("completed"); setPayment("all"); }} />
           <StatCard
-            label="Unpaid (not cancelled)"
+            label="Not paid (not cancelled)"
             value={bookings.filter(b => b.fee != null && b.payment_status === "unpaid" && b.status !== "cancelled").length}
             icon={<IndianRupee className="w-full h-full" />}
             color="red"
+            onClick={() => { setPayment("not_paid"); setBookingStatus("all"); }}
           />
         </div>
 
         <div className="flex flex-wrap gap-3 items-center">
-          <SearchInput placeholder="Search booking ID, patient, phone, doctor or test…" onSearch={setQuery} className="max-w-md flex-1" />
-          <select className={selectClass} value={type} onChange={e => setType(e.target.value as BookingType | "all")}>
-            <option value="all">All types</option>
-            <option value="consult">Consults</option>
-            <option value="lab">Lab tests</option>
-            <option value="diagnostic">Scans</option>
+          <SearchInput
+            placeholder="Search booking, when, patient, where, fee, payment, docs…"
+            onSearch={setQuery}
+            className="max-w-lg flex-1 min-w-[240px]"
+          />
+          <select
+            className={selectClass}
+            value={payment}
+            onChange={e => setPayment(e.target.value as PaymentFilter)}
+            aria-label="Filter by payment"
+          >
+            <option value="all">All payments</option>
+            <option value="paid">Paid</option>
+            <option value="not_paid">Not paid</option>
           </select>
-          <select className={selectClass} value={status} onChange={e => setStatus(e.target.value as Status | "due" | "all")}>
-            <option value="all">Any status</option>
+          <select
+            className={selectClass}
+            value={bookingStatus}
+            onChange={e => setBookingStatus(e.target.value as Status | "due" | "all")}
+            aria-label="Filter by booking status"
+          >
+            <option value="all">All bookings</option>
             <option value="upcoming">Upcoming</option>
             <option value="due">Awaiting completion</option>
             <option value="completed">Completed</option>

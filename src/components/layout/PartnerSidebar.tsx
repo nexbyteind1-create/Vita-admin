@@ -9,7 +9,7 @@ export type PartnerPortal = Extract<Portal, "hospital" | "doctor" | "centre">;
 const icon = (Icon: typeof LayoutDashboard) => <Icon className="w-4 h-4" />;
 
 /** Only the modules a hospital, doctor or lab / diagnostic centre runs itself. */
-const NAV: Record<PartnerPortal, NavItem[]> = {
+export const partnerNavByPortal: Record<PartnerPortal, NavItem[]> = {
   hospital: [
     { label: "Dashboard", href: "/hospital/dashboard", icon: icon(LayoutDashboard) },
     { label: "Bookings", href: "/hospital/bookings", icon: icon(CalendarCheck) },
@@ -37,7 +37,7 @@ const NAV: Record<PartnerPortal, NavItem[]> = {
 
 export function PartnerSidebar({ portal }: { portal: PartnerPortal }) {
   const { admin } = useSession();
-  return <PortalSidebar items={NAV[portal]} subtitle={`${admin ? ROLE_LABEL[admin.role] : "Partner"} Portal`} />;
+  return <PortalSidebar items={partnerNavByPortal[portal]} subtitle={`${admin ? ROLE_LABEL[admin.role] : "Partner"} Portal`} />;
 }
 
 /** Signed-in frame for a partner portal: gate, sidebar and scrolling main. */
@@ -48,7 +48,7 @@ export function PartnerShell({ portal, children }: { portal: PartnerPortal; chil
       <SidebarProvider>
         <div className="flex h-screen overflow-hidden bg-vita-bg">
           <PartnerSidebar portal={portal} />
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
             <main className="flex-1 overflow-y-auto">{children}</main>
           </div>
         </div>
