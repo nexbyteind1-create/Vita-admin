@@ -4,10 +4,14 @@ import { CalendarClock, CheckCircle, Stethoscope, Star } from "lucide-react";
 import { ResourceManager, withoutFields, type ResourceConfig } from "@/components/data/ResourceManager";
 import { Button } from "@/components/ui/Button";
 import { StatCard } from "@/components/ui/StatCard";
+import { DoctorPlanFeesFields, PLAN_FEES_FORM_KEY, type PlanFeeMap } from "@/components/membership/DoctorPlanFeesFields";
 import { supabase } from "@/lib/supabase/client";
-import { useLoad } from "@/lib/data/hooks";
+import { audit, useLoad } from "@/lib/data/hooks";
+import { fetchActivePlanOptions } from "@/lib/membership/plan-catalog";
+import { fetchPlanFeesByDoctorIds, lowestPlanFee, saveDoctorPlanMemberFees } from "@/lib/membership/doctor-plan-fees";
 import { formatCurrency } from "@/lib/utils/format";
 import { usePortal } from "@/lib/auth/session";
+import type { FormValues } from "@/components/data/FormField";
 
 /** public.doctors — Consult Doctor list, doctor profile and slot booking. */
 export interface DoctorRow {
@@ -36,25 +40,29 @@ export interface DoctorRow {
   is_active: boolean;
 }
 
-export default function DoctorsPage() {
-  const { base, portal, hospitalId, doctorId } = usePortal();
-  const { data: hospitals } = useLoad(async () => {
-    const { data, error } = await supabase().from("hospitals").select("id, name").order("name");
-    if (error) throw new Error(error.message);
-    return data as { id: string; name: string }[];
-  });
+function planFeesFromValues(values: FormValues): PlanFeeMap {
+  return (values[PLAN_FEES_FORM_KEY] as PlanFeeMap) ?? {};
+}
 
-  const config: ResourceConfig<DoctorRow> = {
+function buildDoctorConfig(
+  hospitals: { id: string; name: string }[] | undefined,
+  planNames: Map<string, string>,
+  planFeesByDoctor: Map<string, PlanFeeMap>,
+  base: string,
+): ResourceConfig<DoctorRow> {
+  return {
     table: "doctors",
     noun: "doctor",
     title: "Doctors",
-    subtitle: "Doctor profiles, fees and support contacts shown in Consult Doctor",
+    subtitle: "Doctor profiles, standard consultation fee, and consultation fee per membership plan",
     select: "*, hospital:hospitals(name)",
     order: { column: "sort_order" },
     searchKeys: ["full_name", "specialty", "qualifications"],
     activeKey: "is_active",
     modalSize: "xl",
     deleteWarning: "Their slots and reviews are deleted too; past appointments keep their history.",
+    saveSuccessMessage: ({ row }) =>
+      row ? "Doctor updated successfully" : "Doctor added successfully — plan consultation fees saved",
     columns: [
       {
         key: "full_name",
@@ -70,14 +78,30 @@ export default function DoctorsPage() {
       { key: "hospital", header: "Hospital", render: d => <span className="text-sm text-slate-500">{d.hospital?.name ?? "—"}</span> },
       {
         key: "consultation_fee",
-        header: "Fee",
+        header: "Consultation fees",
         align: "right",
-        render: d => (
-          <div className="text-right">
-            <div className="font-semibold">{d.consultation_fee != null ? formatCurrency(d.consultation_fee) : "—"}</div>
-            {d.member_fee != null && <div className="text-xs text-emerald-600">Member {formatCurrency(d.member_fee)}</div>}
-          </div>
-        ),
+        render: d => {
+          const byPlan = planFeesByDoctor.get(d.id);
+          const lines =
+            byPlan && Object.keys(byPlan).length > 0
+              ? Object.entries(byPlan)
+                  .filter(([, fee]) => fee != null)
+                  .map(([planId, fee]) => (
+                    <div key={planId} className="text-xs text-emerald-600">
+                      {planNames.get(planId) ?? "Plan"} plan {formatCurrency(fee!)}
+                    </div>
+                  ))
+              : d.member_fee != null
+                ? [<div key="legacy" className="text-xs text-emerald-600">Plan consult {formatCurrency(d.member_fee)}</div>]
+                : [];
+          return (
+            <div className="text-right">
+              <div className="font-semibold">{d.consultation_fee != null ? formatCurrency(d.consultation_fee) : "—"}</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide">Standard (no plan)</div>
+              {lines}
+            </div>
+          );
+        },
       },
       {
         key: "rating",
@@ -98,8 +122,13 @@ export default function DoctorsPage() {
         options: (hospitals ?? []).map(h => ({ value: h.id, label: h.name })),
       },
       { key: "consult_mode", label: "Consult mode", placeholder: "In-person consult" },
-      { key: "consultation_fee", label: "Consultation fee (₹)", type: "number", min: 0 },
-      { key: "member_fee", label: "Member fee (₹)", type: "number", min: 0, help: "Leave empty if members pay the full fee" },
+      {
+        key: "consultation_fee",
+        label: "Standard consultation fee (₹)",
+        type: "number",
+        min: 0,
+        help: "Full fee without an active membership plan",
+      },
       { key: "available_days", label: "Available days", placeholder: "Mon–Sat" },
       { key: "patients_count", label: "Patients treated", type: "number", min: 0 },
       { key: "rating", label: "Rating (0–5)", type: "decimal", min: 0, max: 5, help: "Updates automatically as patients rate visits" },
@@ -114,14 +143,36 @@ export default function DoctorsPage() {
       { key: "sort_order", label: "Display order", type: "number" },
       { key: "is_active", label: "Visible in app", type: "toggle" },
     ],
-    fromForm: values => ({
-      ...values,
-      review_count: values.review_count ?? 0,
-      sort_order: values.sort_order ?? 0,
-      treats: values.treats ?? [],
-      languages: values.languages ?? [],
-      education: values.education ?? [],
-    }),
+    formExtrasInsertAfter: "consultation_fee",
+    formExtras: ({ row, values, setValue }) => (
+      <DoctorPlanFeesFields
+        doctorId={row?.id}
+        consultationFee={values.consultation_fee != null ? Number(values.consultation_fee) : null}
+        fees={planFeesFromValues(values)}
+        onChange={fees => setValue(PLAN_FEES_FORM_KEY, fees)}
+      />
+    ),
+    afterSave: async ({ id, values }) => {
+      const fees = planFeesFromValues(values);
+      await saveDoctorPlanMemberFees(id, fees);
+      const legacy = lowestPlanFee(fees);
+      if (legacy != null) {
+        await supabase().from("doctors").update({ member_fee: legacy }).eq("id", id);
+      }
+      await audit("update", "membership_plan_doctor_fees", id, fees);
+    },
+    fromForm: values => {
+      const fees = planFeesFromValues(values);
+      return {
+        ...values,
+        member_fee: lowestPlanFee(fees),
+        review_count: values.review_count ?? 0,
+        sort_order: values.sort_order ?? 0,
+        treats: values.treats ?? [],
+        languages: values.languages ?? [],
+        education: values.education ?? [],
+      };
+    },
     rowActions: d => (
       <Link href={`${base}/schedules/doctor-slots?doctor=${d.id}`}>
         <Button size="xs" variant="ghost" icon={<CalendarClock className="w-3 h-3" />}>
@@ -146,17 +197,51 @@ export default function DoctorsPage() {
       </div>
     ),
   };
+}
+
+export default function DoctorsPage() {
+  const { base, portal, hospitalId, doctorId } = usePortal();
+  const { data: hospitals } = useLoad(async () => {
+    const { data, error } = await supabase().from("hospitals").select("id, name").order("name");
+    if (error) throw new Error(error.message);
+    return data as { id: string; name: string }[];
+  });
+
+  const { data: doctors } = useLoad(async () => {
+    const { data, error } = await supabase().from("doctors").select("id").order("sort_order");
+    if (error) throw new Error(error.message);
+    return data as { id: string }[];
+  });
+
+  const doctorIds = (doctors ?? []).map(d => d.id);
+
+  const { data: planMeta } = useLoad(() => fetchActivePlanOptions().catch(() => []), []);
+  const planNames = new Map((planMeta ?? []).map(p => [p.id, p.name]));
+
+  const { data: planFeesByDoctor } = useLoad(
+    () => fetchPlanFeesByDoctorIds(doctorIds).catch(() => new Map<string, PlanFeeMap>()),
+    [doctorIds.join(",")],
+  );
+
+  const config = buildDoctorConfig(hospitals ?? undefined, planNames, planFeesByDoctor ?? new Map(), base);
 
   if (portal === "hospital") {
     return (
       <ResourceManager
+        key={planFeesByDoctor?.size ?? 0}
         config={{
-          // Ratings, review counts and ordering are set by Vita; partners edit the rest.
           ...withoutFields(config, ["hospital_id", "rating", "review_count", "sort_order"]),
-          subtitle: "Doctors at your hospital — profiles, fees and support contacts shown in the app",
+          subtitle: "Doctors at your hospital — standard and membership-plan consultation fees",
           scope: q => q.eq("hospital_id", hospitalId),
           defaults: { hospital_id: hospitalId },
           columns: config.columns.filter(c => c.key !== "hospital"),
+          rowActions: d => (
+            <Link href={`${base}/schedules/doctor-slots?doctor=${d.id}`}>
+              <Button size="xs" variant="ghost" icon={<CalendarClock className="w-3 h-3" />}>
+                Slots
+              </Button>
+            </Link>
+          ),
         }}
       />
     );
@@ -177,5 +262,5 @@ export default function DoctorsPage() {
       />
     );
   }
-  return <ResourceManager config={config} />;
+  return <ResourceManager key={planFeesByDoctor?.size ?? 0} config={config} />;
 }

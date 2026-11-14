@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { FormField, cleanValues, type FieldDef, type FormValues } from "./FormField";
+import { SaveSuccessAlert } from "@/components/ui/SaveSuccessAlert";
 import { supabase } from "@/lib/supabase/client";
 import { audit, errorText, useLoad } from "@/lib/data/hooks";
 import { usePortal } from "@/lib/auth/session";
@@ -46,6 +47,18 @@ export interface ResourceConfig<Row extends { id: string }> {
   summary?: (rows: Row[]) => React.ReactNode;
   headerActions?: React.ReactNode;
   modalSize?: "sm" | "md" | "lg" | "xl";
+  /** Insert `formExtras` immediately after this field key (e.g. after consultation_fee). */
+  formExtrasInsertAfter?: string;
+  /** Extra blocks in the form modal (e.g. plan-wise pricing). */
+  formExtras?: (ctx: {
+    row: Row | null;
+    values: FormValues;
+    setValue: (key: string, value: unknown) => void;
+  }) => React.ReactNode;
+  /** Runs after a successful insert/update; use for related tables. */
+  afterSave?: (ctx: { id: string; values: FormValues; row: Row | null }) => Promise<void>;
+  /** Shown after a successful save (e.g. “Doctor saved successfully”). */
+  saveSuccessMessage?: (ctx: { id: string; row: Row | null }) => string;
 }
 
 /**
@@ -80,6 +93,7 @@ export function ResourceManager<Row extends { id: string }>({ config }: { config
   const [deleting, setDeleting] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   const { data, error, loading, reload } = useLoad<Row[]>(async () => {
     let q: Query = supabase().from(config.table).select(config.select ?? "*");
@@ -123,10 +137,12 @@ export function ResourceManager<Row extends { id: string }>({ config }: { config
     try {
       const cleaned = cleanValues(config.fields, editing.values);
       const payload = config.fromForm ? config.fromForm(cleaned, editing.row) : cleaned;
+      let savedId = editing.row?.id ?? "";
       if (editing.row) {
         const { error } = await supabase().from(config.table).update(payload).eq("id", editing.row.id);
         if (error) throw new Error(error.message);
         await audit("update", config.table, editing.row.id, payload);
+        savedId = editing.row.id;
       } else {
         const { data, error } = await supabase()
           .from(config.table)
@@ -135,6 +151,15 @@ export function ResourceManager<Row extends { id: string }>({ config }: { config
           .single();
         if (error) throw new Error(error.message);
         await audit("create", config.table, data?.id ?? null, payload);
+        savedId = data?.id ?? "";
+      }
+      if (savedId && config.afterSave) {
+        await config.afterSave({ id: savedId, values: editing.values, row: editing.row });
+      }
+      const successMsg = config.saveSuccessMessage?.({ id: savedId, row: editing.row });
+      if (successMsg) {
+        setSaveSuccess(successMsg);
+        window.setTimeout(() => setSaveSuccess(null), 8000);
       }
       setEditing(null);
       reload();
@@ -223,6 +248,7 @@ export function ResourceManager<Row extends { id: string }>({ config }: { config
       />
       <div className="p-4 sm:p-6 space-y-6 max-w-[1600px]">
         {config.summary?.(rows)}
+        {saveSuccess && <SaveSuccessAlert title={saveSuccess} onDismiss={() => setSaveSuccess(null)} />}
         <SearchInput placeholder={`Search ${config.noun}s…`} onSearch={setQuery} className="max-w-lg" />
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
         <DataTable
@@ -243,14 +269,34 @@ export function ResourceManager<Row extends { id: string }>({ config }: { config
         {editing && (
           <form onSubmit={save} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {config.fields.map(field => (
-                <FormField
-                  key={field.key}
-                  field={field}
-                  value={editing.values[field.key]}
-                  onChange={v => setEditing(cur => (cur ? { ...cur, values: { ...cur.values, [field.key]: v } } : cur))}
-                />
-              ))}
+              {(() => {
+                const insertAfter = config.formExtrasInsertAfter;
+                const splitAt =
+                  insertAfter != null ? config.fields.findIndex(f => f.key === insertAfter) : -1;
+                const before = splitAt >= 0 ? config.fields.slice(0, splitAt + 1) : config.fields;
+                const after = splitAt >= 0 ? config.fields.slice(splitAt + 1) : [];
+                const extras = config.formExtras?.({
+                  row: editing.row,
+                  values: editing.values,
+                  setValue: (key, value) =>
+                    setEditing(cur => (cur ? { ...cur, values: { ...cur.values, [key]: value } } : cur)),
+                });
+                const renderField = (field: FieldDef) => (
+                  <FormField
+                    key={field.key}
+                    field={field}
+                    value={editing.values[field.key]}
+                    onChange={v => setEditing(cur => (cur ? { ...cur, values: { ...cur.values, [field.key]: v } } : cur))}
+                  />
+                );
+                return (
+                  <>
+                    {before.map(renderField)}
+                    {extras}
+                    {after.map(renderField)}
+                  </>
+                );
+              })()}
             </div>
             {formError && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{formError}</p>}
             <div className="flex gap-2 pt-4 border-t border-slate-200">

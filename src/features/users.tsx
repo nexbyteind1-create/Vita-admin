@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase/client";
 import { audit, errorText, useLoad } from "@/lib/data/hooks";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils/format";
 import { usePortal } from "@/lib/auth/session";
+import { fetchActivePlanOptions } from "@/lib/membership/plan-catalog";
 
 /** App accounts (public.users) with their family, membership and booking history. */
 
@@ -43,6 +44,7 @@ interface Member {
 
 interface Membership {
   user_id: string;
+  plan_id: string | null;
   plan_name: string;
   saved_this_month: number;
   is_active: boolean;
@@ -72,6 +74,7 @@ function UserModal({
   family,
   membership,
   visits,
+  planOptions,
   onClose,
   onChanged,
 }: {
@@ -79,12 +82,21 @@ function UserModal({
   family: Member[];
   membership: Membership | undefined;
   visits: Visit[];
+  planOptions: { id: string; slug: string; name: string }[];
   onClose: () => void;
   onChanged: () => void;
 }) {
   const { base } = usePortal();
   const [form, setForm] = useState({ full_name: user.full_name ?? "", gender: user.gender ?? "", date_of_birth: user.date_of_birth ?? "" });
-  const [plan, setPlan] = useState({ plan_name: membership?.plan_name ?? "Vita Plus", saved_this_month: membership?.saved_this_month ?? 0, is_active: membership?.is_active ?? false });
+  const defaultPlan =
+    planOptions.find(p => p.id === membership?.plan_id) ??
+    planOptions.find(p => p.name.toLowerCase() === (membership?.plan_name ?? "").toLowerCase());
+  const [plan, setPlan] = useState({
+    plan_id: membership?.plan_id ?? defaultPlan?.id ?? null,
+    plan_name: defaultPlan?.name ?? membership?.plan_name ?? planOptions[0]?.name ?? "Vita Plus",
+    saved_this_month: membership?.saved_this_month ?? 0,
+    is_active: membership?.is_active ?? false,
+  });
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
@@ -118,11 +130,17 @@ function UserModal({
 
   const saveMembership = () =>
     run("membership", async () => {
-      const { error } = await supabase()
-        .from("memberships")
-        .upsert({ user_id: user.id, plan_name: plan.plan_name, saved_this_month: plan.saved_this_month, is_active: plan.is_active }, { onConflict: "user_id" });
+      const selected = planOptions.find(p => p.id === plan.plan_id);
+      const payload = {
+        user_id: user.id,
+        plan_id: plan.plan_id,
+        plan_name: selected?.name ?? plan.plan_name,
+        saved_this_month: plan.saved_this_month,
+        is_active: plan.is_active,
+      };
+      const { error } = await supabase().from("memberships").upsert(payload, { onConflict: "user_id" });
       if (error) throw new Error(error.message);
-      await audit("update", "memberships", user.id, plan);
+      await audit("update", "memberships", user.id, payload);
     });
 
   const label = "text-xs font-semibold text-slate-400 uppercase mb-2 block";
@@ -160,14 +178,37 @@ function UserModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={label}>Plan</label>
-              <input className="vita-input" value={plan.plan_name} onChange={e => setPlan(p => ({ ...p, plan_name: e.target.value }))} />
+              {planOptions.length > 0 ? (
+                <select
+                  className="vita-input"
+                  value={plan.plan_id ?? ""}
+                  onChange={e => {
+                    const picked = planOptions.find(p => p.id === e.target.value);
+                    setPlan(p => ({ ...p, plan_id: picked?.id ?? null, plan_name: picked?.name ?? p.plan_name }));
+                  }}
+                >
+                  <option value="">Custom / legacy name</option>
+                  {planOptions.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input className="vita-input" value={plan.plan_name} onChange={e => setPlan(p => ({ ...p, plan_name: e.target.value }))} />
+              )}
             </div>
             <div>
               <label className={label}>Saved this month (₹)</label>
               <input type="number" min={0} className="vita-input" value={plan.saved_this_month} onChange={e => setPlan(p => ({ ...p, saved_this_month: Number(e.target.value) }))} />
             </div>
           </div>
-          <ToggleSwitch enabled={plan.is_active} onChange={v => setPlan(p => ({ ...p, is_active: v }))} label="Membership active" description="Active members get member prices and the Vita Plus banner" />
+          <ToggleSwitch
+            enabled={plan.is_active}
+            onChange={v => setPlan(p => ({ ...p, is_active: v }))}
+            label="Membership active"
+            description="Active members get plan-based doctor/lab member prices"
+          />
           <Button size="sm" loading={busy === "membership"} onClick={saveMembership}>
             Save membership
           </Button>
@@ -220,11 +261,12 @@ export default function UsersPage() {
   const [openId, setOpenId] = useState<string | null>(null);
 
   const { data, loading, error, reload } = useLoad(async () => {
-    const [users, family, memberships, visits] = await Promise.all([
+    const [users, family, memberships, visits, planOptions] = await Promise.all([
       supabase().from("users").select("id, phone, full_name, gender, date_of_birth, default_address, is_active, last_login_at, created_at").order("created_at", { ascending: false }),
       supabase().from("family_members").select("id, user_id, relation, display_name, gender, date_of_birth, phone, email, photo_url").order("sort_order"),
-      supabase().from("memberships").select("user_id, plan_name, saved_this_month, is_active"),
+      supabase().from("memberships").select("user_id, plan_id, plan_name, saved_this_month, is_active"),
       supabase().from("appointments").select("id, user_id, booking_code, title, provider_name, scheduled_at, status, fee, payment_status").order("scheduled_at", { ascending: false }),
+      fetchActivePlanOptions().catch(() => [] as { id: string; slug: string; name: string }[]),
     ]);
     for (const r of [users, family, memberships, visits]) if (r.error) throw new Error(r.error.message);
     return {
@@ -232,6 +274,7 @@ export default function UsersPage() {
       family: family.data as Member[],
       memberships: memberships.data as Membership[],
       visits: visits.data as Visit[],
+      planOptions,
     };
   });
 
@@ -317,6 +360,7 @@ export default function UsersPage() {
           family={byUser(data?.family, open.id)}
           membership={membershipOf(open.id)}
           visits={byUser(data?.visits, open.id)}
+          planOptions={data?.planOptions ?? []}
           onClose={() => setOpenId(null)}
           onChanged={reload}
         />

@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { ShieldCheck, Plus, Sparkles, Check, ChevronRight, Settings } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { createMembershipPlan } from "@/lib/membership/plan-catalog";
+import { featureKeyFromIndex } from "@/lib/membership/default-features";
+import type { MembershipTier } from "@/lib/types/membership";
+import { errorText } from "@/lib/data/hooks";
 
 interface CustomFeature {
   name: string;
@@ -36,6 +40,7 @@ export default function CreateMembershipPlanPage() {
   });
   const [features, setFeatures] = useState<CustomFeature[]>(defaultFeatures);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,15 +50,37 @@ export default function CreateMembershipPlanPage() {
     }
 
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
-    setLoading(false);
-    router.push("/super-admin/membership/plans");
+    setError("");
+    try {
+      const slug = await createMembershipPlan({
+        name: planDetails.name,
+        tier: planDetails.tier as MembershipTier,
+        price: planDetails.price,
+        validityDays: planDetails.validityDays,
+        maxFamilyMembers: planDetails.maxFamilyMembers,
+        features: features.map((f, i) => ({
+          id: featureKeyFromIndex(i),
+          name: f.name,
+          category: f.category,
+          enabled: f.enabled,
+          limit: f.limit,
+          percentage: f.percentage,
+        })),
+        doctorFeePercent:
+          planDetails.tier === "platinum" ? 20 : planDetails.tier === "gold" ? 35 : planDetails.tier === "silver" ? 50 : 30,
+      });
+      router.push(`/super-admin/membership/plans/${slug}/configure?created=1`);
+    } catch (err) {
+      setError(errorText(err));
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen">
       <TopHeader title="Create Custom Plan" subtitle="Design and launch a custom membership tier" role="super-admin" />
       <div className="p-4 sm:p-6 max-w-4xl space-y-6">
+        {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
         {/* Wizard Steps indicator */}
         <div className="flex flex-col sm:flex-row items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 max-w-md">
           <div className={cn("flex-1 w-full py-2 text-center rounded-lg text-xs font-bold transition-all", step === 1 ? "bg-red-600 text-white" : "text-slate-500")}>1. Plan Details</div>
