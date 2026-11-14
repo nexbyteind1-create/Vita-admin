@@ -6,10 +6,20 @@ import { ResourceManager, type ResourceConfig } from "@/components/data/Resource
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { StatCard } from "@/components/ui/StatCard";
+import { SaveSuccessAlert } from "@/components/ui/SaveSuccessAlert";
 import { TopHeader } from "@/components/layout/TopHeader";
 import { usePortal } from "@/lib/auth/session";
 import { supabase } from "@/lib/supabase/client";
 import { audit, errorText, useLoad } from "@/lib/data/hooks";
+import { fetchActivePlanOptions } from "@/lib/membership/plan-catalog";
+import type { PlanFeeMap } from "@/components/membership/DoctorPlanFeesFields";
+import {
+  clearCentreTestPlanFees,
+  fetchPlanFeesByCentre,
+  fetchPlanFeesByTest,
+  lowestPlanFee,
+  saveCentreTestPlanFees,
+} from "@/lib/membership/centre-test-plan-fees";
 
 /** public.tests — the Book Lab test / Book Diagnostic catalogue. */
 export interface TestRow {
@@ -35,6 +45,12 @@ interface Centre {
   kind: "lab" | "diagnostic" | "both";
 }
 
+export interface PlanOption {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 interface PriceLine {
   centreId: string;
   centreName: string;
@@ -42,43 +58,71 @@ interface PriceLine {
   testName: string;
   offered: boolean;
   price: number | null;
-  memberPrice: number | null;
-  /** Whether a centre_tests row exists now (so unticking deletes it). */
+  planFees: PlanFeeMap;
   existed: boolean;
 }
 
 const fits = (centre: Centre, kind: TestRow["kind"]) => centre.kind === "both" || centre.kind === kind;
 
-/**
- * Ticks, prices and member prices for a set of (centre, test) pairs; saving
- * upserts the ticked lines into centre_tests and removes the unticked ones.
- */
-function PriceEditor({ lines: initial, label, onSaved }: { lines: PriceLine[]; label: "centre" | "test"; onSaved: () => void }) {
+function PriceEditor({
+  lines: initial,
+  label,
+  plans,
+  onSaved,
+}: {
+  lines: PriceLine[];
+  label: "centre" | "test";
+  plans: PlanOption[];
+  onSaved: () => void;
+}) {
   const [lines, setLines] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
 
   const update = (i: number, patch: Partial<PriceLine>) =>
     setLines(cur => cur.map((line, j) => (j === i ? { ...line, ...patch } : line)));
 
+  const updatePlanFee = (i: number, planId: string, raw: string) => {
+    setLines(cur =>
+      cur.map((line, j) => {
+        if (j !== i) return line;
+        const planFees = { ...line.planFees };
+        if (raw === "") delete planFees[planId];
+        else planFees[planId] = Number(raw);
+        return { ...line, planFees };
+      }),
+    );
+  };
+
   const save = async () => {
     setError("");
+    setSaved(false);
     const bad = lines.find(l => l.offered && !(l.price && l.price > 0));
-    if (bad) return setError(`Enter a price for ${label === "centre" ? bad.centreName : bad.testName}.`);
+    if (bad) return setError(`Enter a standard price for ${label === "centre" ? bad.centreName : bad.testName}.`);
     setBusy(true);
     try {
-      const upserts = lines
-        .filter(l => l.offered)
-        .map(l => ({ centre_id: l.centreId, test_id: l.testId, price: l.price, member_price: l.memberPrice }));
+      const offered = lines.filter(l => l.offered);
+      const upserts = offered.map(l => ({
+        centre_id: l.centreId,
+        test_id: l.testId,
+        price: l.price!,
+        member_price: lowestPlanFee(l.planFees),
+      }));
       if (upserts.length) {
-        const { error } = await supabase().from("centre_tests").upsert(upserts, { onConflict: "centre_id,test_id" });
-        if (error) throw new Error(error.message);
+        const { error: upErr } = await supabase().from("centre_tests").upsert(upserts, { onConflict: "centre_id,test_id" });
+        if (upErr) throw new Error(upErr.message);
+      }
+      for (const l of offered) {
+        await saveCentreTestPlanFees(l.centreId, l.testId, l.planFees);
       }
       for (const l of lines.filter(l => !l.offered && l.existed)) {
-        const { error } = await supabase().from("centre_tests").delete().eq("centre_id", l.centreId).eq("test_id", l.testId);
-        if (error) throw new Error(error.message);
+        const { error: delErr } = await supabase().from("centre_tests").delete().eq("centre_id", l.centreId).eq("test_id", l.testId);
+        if (delErr) throw new Error(delErr.message);
+        await clearCentreTestPlanFees(l.centreId, l.testId);
       }
-      await audit("update", "centre_tests", null, { lines: upserts.length });
+      await audit("update", "centre_tests", null, { lines: upserts.length, planWise: true });
+      setSaved(true);
       onSaved();
     } catch (e) {
       setError(errorText(e));
@@ -89,21 +133,41 @@ function PriceEditor({ lines: initial, label, onSaved }: { lines: PriceLine[]; l
 
   return (
     <div className="space-y-4">
+      {plans.length === 0 && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          No membership plans found. Run <code>Vita-admin/sql/membership_plans.sql</code> or create plans under Membership → Plans.
+        </p>
+      )}
+      {saved && (
+        <SaveSuccessAlert
+          title="Prices saved successfully"
+          description="Standard and membership-plan prices are updated for this lab or diagnostic centre."
+        />
+      )}
       <div className="overflow-x-auto rounded-xl border border-slate-200">
-        <table className="vita-table w-full">
+        <table className="vita-table w-full min-w-[640px]">
           <thead>
             <tr>
               <th className="text-left">Offered</th>
               <th className="text-left">{label === "centre" ? "Lab / centre" : "Test"}</th>
-              <th className="text-right">Price (₹)</th>
-              <th className="text-right">Member price (₹)</th>
+              <th className="text-right">Standard price (₹)</th>
+              {plans.map(p => (
+                <th key={p.id} className="text-right whitespace-nowrap">
+                  {p.name} plan (₹)
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {lines.map((line, i) => (
               <tr key={`${line.centreId}:${line.testId}`}>
                 <td>
-                  <input type="checkbox" className="accent-red-600 w-4 h-4" checked={line.offered} onChange={e => update(i, { offered: e.target.checked })} />
+                  <input
+                    type="checkbox"
+                    className="accent-red-600 w-4 h-4"
+                    checked={line.offered}
+                    onChange={e => update(i, { offered: e.target.checked })}
+                  />
                 </td>
                 <td className="text-sm font-medium text-slate-900">{label === "centre" ? line.centreName : line.testName}</td>
                 <td className="text-right">
@@ -116,22 +180,28 @@ function PriceEditor({ lines: initial, label, onSaved }: { lines: PriceLine[]; l
                     className="vita-input w-28 text-right py-1.5"
                   />
                 </td>
-                <td className="text-right">
-                  <input
-                    type="number"
-                    min={0}
-                    disabled={!line.offered}
-                    value={line.memberPrice ?? ""}
-                    onChange={e => update(i, { memberPrice: e.target.value === "" ? null : Number(e.target.value) })}
-                    className="vita-input w-28 text-right py-1.5"
-                  />
-                </td>
+                {plans.map(p => (
+                  <td key={p.id} className="text-right">
+                    <input
+                      type="number"
+                      min={0}
+                      disabled={!line.offered}
+                      placeholder="Auto"
+                      value={line.planFees[p.id] != null ? String(line.planFees[p.id]) : ""}
+                      onChange={e => updatePlanFee(i, p.id, e.target.value)}
+                      className="vita-input w-24 text-right py-1.5"
+                    />
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-slate-400">Members with an active Vita Plus membership are charged the member price when they book.</p>
+      <p className="text-xs text-slate-500">
+        <strong>Standard price</strong> — without a membership plan. <strong>Plan columns</strong> — what users on Silver / Gold /
+        Platinum (etc.) pay, same as doctor consultation fees per plan.
+      </p>
       {error && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
       <Button className="w-full" loading={busy} onClick={save}>
         Save prices
@@ -155,41 +225,59 @@ async function loadOffers(filter: { test?: string; centre?: string }) {
   return data as { centre_id: string; test_id: string; price: number; member_price: number | null }[];
 }
 
+async function loadPlans(): Promise<PlanOption[]> {
+  try {
+    return await fetchActivePlanOptions();
+  } catch {
+    return [];
+  }
+}
+
 /** Every compatible centre for one test. */
 function TestPricesModal({ test, onClose }: { test: TestRow; onClose: () => void }) {
   const { data, error } = useLoad(async () => {
-    const [centres, offers] = await Promise.all([loadCentres(), loadOffers({ test: test.id })]);
-    return centres
-      .filter(c => fits(c, test.kind))
-      .map<PriceLine>(c => {
-        const o = offers.find(x => x.centre_id === c.id);
-        return {
-          centreId: c.id,
-          centreName: c.name,
-          testId: test.id,
-          testName: test.name,
-          offered: !!o,
-          price: o?.price ?? null,
-          memberPrice: o?.member_price ?? null,
-          existed: !!o,
-        };
-      });
+    const [centres, offers, planByCentre, plans] = await Promise.all([
+      loadCentres(),
+      loadOffers({ test: test.id }),
+      fetchPlanFeesByTest(test.id).catch(() => new Map<string, PlanFeeMap>()),
+      loadPlans(),
+    ]);
+    return {
+      plans,
+      lines: centres
+        .filter(c => fits(c, test.kind))
+        .map<PriceLine>(c => {
+          const o = offers.find(x => x.centre_id === c.id);
+          return {
+            centreId: c.id,
+            centreName: c.name,
+            testId: test.id,
+            testName: test.name,
+            offered: !!o,
+            price: o?.price ?? null,
+            planFees: planByCentre.get(c.id) ?? {},
+            existed: !!o,
+          };
+        }),
+    };
   }, [test.id]);
 
   return (
-    <Modal open onClose={onClose} title={`Prices — ${test.name}`} subtitle="Which labs or centres run it, and what they charge" size="xl">
+    <Modal open onClose={onClose} title={`Prices — ${test.name}`} subtitle="Standard fee and membership-plan prices per lab or centre" size="xl">
       {error && <p className="text-sm text-red-600">{error}</p>}
-      {data ? <PriceEditor lines={data} label="centre" onSaved={onClose} /> : !error && <p className="text-sm text-slate-400">Loading…</p>}
+      {data ? <PriceEditor lines={data.lines} label="centre" plans={data.plans} onSaved={onClose} /> : !error && <p className="text-sm text-slate-400">Loading…</p>}
     </Modal>
   );
 }
 
 /** Every test the centre's type allows, with what it offers today. */
 async function loadCentreLines(centreId: string) {
-  const [centres, offers, tests] = await Promise.all([
+  const [centres, offers, tests, planByTest, plans] = await Promise.all([
     loadCentres(),
     loadOffers({ centre: centreId }),
     supabase().from("tests").select("id, name, kind").order("kind").order("sort_order"),
+    fetchPlanFeesByCentre(centreId).catch(() => new Map<string, PlanFeeMap>()),
+    loadPlans(),
   ]);
   if (tests.error) throw new Error(tests.error.message);
   const centre = centres.find(c => c.id === centreId);
@@ -205,11 +293,11 @@ async function loadCentreLines(centreId: string) {
         testName: t.name,
         offered: !!o,
         price: o?.price ?? null,
-        memberPrice: o?.member_price ?? null,
+        planFees: planByTest.get(t.id) ?? {},
         existed: !!o,
       };
     });
-  return { centre, lines };
+  return { centre, lines, plans };
 }
 
 /** Every compatible test at one centre (opened from a lab/centre's "Prices"). */
@@ -226,6 +314,7 @@ function CentrePrices({ centreId, onChanged }: { centreId: string; onChanged: ()
           key={data.lines.length}
           lines={data.lines}
           label="test"
+          plans={data.plans}
           onSaved={() => {
             reload();
             setOpen(false);
@@ -242,7 +331,6 @@ function CentrePrices({ centreId, onChanged }: { centreId: string; onChanged: ()
 export default function TestsPage() {
   const centreId = useSearchParams().get("centre");
   const [pricing, setPricing] = useState<TestRow | null>(null);
-  // Bumped after prices change so the list re-reads its price ranges.
   const [version, setVersion] = useState(0);
 
   const config = useMemo<ResourceConfig<TestRow>>(
@@ -250,7 +338,7 @@ export default function TestsPage() {
       table: "tests",
       noun: "test",
       title: "Tests & scans",
-      subtitle: "The Book Lab test and Book Diagnostic catalogue — set prices per lab or centre",
+      subtitle: "Lab and diagnostic catalogue — standard price plus fees per membership plan",
       select: "*, offers:centre_tests(price)",
       order: { column: "sort_order" },
       searchKeys: ["name", "category", "parameters"],
@@ -375,12 +463,16 @@ export function CentrePriceListPage() {
 
   return (
     <div className="min-h-screen">
-      <TopHeader title="Tests & prices" subtitle="Tick what you offer and set your price; unpriced tests don't show for your centre in the app" role="centre" />
-      <div className="p-4 sm:p-6 space-y-6 max-w-[1000px]">
+      <TopHeader
+        title="Tests & prices"
+        subtitle="Standard fee and membership-plan price per test — unpriced tests stay hidden in the app"
+        role="centre"
+      />
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1200px]">
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
         {data ? (
           <div className="glass-card p-4 sm:p-6">
-            <PriceEditor key={data.lines.map(l => `${l.testId}:${l.offered}:${l.price}:${l.memberPrice}`).join()} lines={data.lines} label="test" onSaved={reload} />
+            <PriceEditor lines={data.lines} label="test" plans={data.plans} onSaved={reload} />
           </div>
         ) : (
           !error && <p className="text-sm text-slate-400">Loading…</p>
